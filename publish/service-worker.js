@@ -17,3 +17,10 @@ chrome.runtime.onConnect.addListener((port) => {
     })
   }
 })
+;(async () => {
+  const [tab] = await chrome.tabs.query({
+    active: true,
+    lastFocusedWindow: true,
+  })
+  await chrome.tabs.sendMessage(tab.id, { url: tab.url })
+})()

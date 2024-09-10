@@ -5,12 +5,17 @@
   "author": "People and Code",
   "type": "module",
   "scripts": {
-    "lint": "eslint . && prettier --check . && stylelint '**/*.{css,scss}'"
+    "lint": "eslint . && prettier --check . && stylelint '**/*.{css,scss}'",
+    "build": "parcel build publish/side-panel.html"
   },
   "devDependencies": {
     "eslint": "latest",
+    "parcel": "^2.12.0",
     "prettier": "latest",
     "stylelint": "latest",
     "stylelint-config-standard": "latest"
+  },
+  "dependencies": {
+    "@danhartley/emissions": "^0.1.2"
   }
 }
