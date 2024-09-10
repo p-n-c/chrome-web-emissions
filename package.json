@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "lint": "eslint . && prettier --check . && stylelint '**/*.{css,scss}'",
-    "build": "parcel build publish/side-panel.html"
+    "build": "parcel build publish/content-script.js"
   },
   "devDependencies": {
     "eslint": "latest",

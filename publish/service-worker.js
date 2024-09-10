@@ -8,7 +8,7 @@ chrome.action.onClicked.addListener((tab) => {
 
 chrome.runtime.onConnect.addListener((port) => {
   console.log('Connected to panel')
-
+  console.log(port)
   // Send a message to the panel via the port
   if (port.name === 'panel-connection') {
     port.postMessage({
@@ -22,5 +22,6 @@ chrome.runtime.onConnect.addListener((port) => {
     active: true,
     lastFocusedWindow: true,
   })
-  await chrome.tabs.sendMessage(tab.id, { url: tab.url })
+  const response = await chrome.tabs.sendMessage(tab.id, { url: tab.url })
+  console.log(response)
 })()
