@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "chrome-emissions-ext",
+  "version": "0.0.0.1",
+  "permissions": ["activeTab", "sidePanel"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "service-worker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "css": ["styles.css"]
+    }
+  ],
+  "action": {},
+  "icons": {},
+  "side_panel": {
+    "default_path": "side-panel.html"
+  }
+}

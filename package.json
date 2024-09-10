@@ -1,0 +1,16 @@
+{
+  "name": "chrome-emissions-ext",
+  "version": "0.0.1",
+  "description": "CO2 page emissions in mg",
+  "author": "People and Code",
+  "type": "module",
+  "scripts": {
+    "lint": "eslint . && prettier --check . && stylelint '**/*.{css,scss}'"
+  },
+  "devDependencies": {
+    "eslint": "latest",
+    "prettier": "latest",
+    "stylelint": "latest",
+    "stylelint-config-standard": "latest"
+  }
+}
