@@ -1,4 +1,5 @@
 /* eslint-disable no-undef */
+// import { getPageEmissions } from './emissions-script'
 
 // Open the panel when the visitor clicks on the extension icon
 chrome.action.onClicked.addListener((tab) => {
@@ -22,6 +23,5 @@ chrome.runtime.onConnect.addListener((port) => {
     active: true,
     lastFocusedWindow: true,
   })
-  const response = await chrome.tabs.sendMessage(tab.id, { url: tab.url })
-  console.log(response)
+  console.log(tab)
 })()
