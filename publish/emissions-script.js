@@ -1,6 +1,7 @@
 import { browser } from '@danhartley/emissions'
 
-export const getPageEmissions = (url) => {
+const getPageEmissions = (url) => {
+  console.log('url from service worker:', url)
   ;(async () => {
     await browser.registerServiceWorker()
 
