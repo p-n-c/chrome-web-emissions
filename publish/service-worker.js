@@ -7,14 +7,19 @@ chrome.action.onClicked.addListener((tab) => {
   console.log('tab: ', tab)
 })
 
-chrome.runtime.onConnect.addListener((port) => {
+chrome.runtime.onConnect.addListener(async (port) => {
   console.log('Connected to panel')
-  console.log(port)
+
+  const [tab] = await chrome.tabs.query({
+    active: true,
+    lastFocusedWindow: true,
+  })
+
   // Send a message to the panel via the port
   if (port.name === 'panel-connection') {
     port.postMessage({
       from: 'service-worker',
-      message: 'Hello from the service worker',
+      url: tab.url,
     })
   }
 })

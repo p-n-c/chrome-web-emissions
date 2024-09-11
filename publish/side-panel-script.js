@@ -6,10 +6,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // Listen for messages from the service worker
   port.onMessage.addListener((message) => {
     if (message.from === 'service-worker') {
-      console.log('Message received from service worker:', message.message)
+      console.log('Current page url received from service worker:', message.url)
 
       // Display the message in the panel
-      document.getElementById('message').innerText = message.message
+      document.getElementById('message').innerText = message.url
     }
   })
 })
