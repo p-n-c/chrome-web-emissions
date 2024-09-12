@@ -2,7 +2,13 @@
   "manifest_version": 3,
   "name": "chrome-emissions-ext",
   "version": "0.0.0.1",
-  "permissions": ["activeTab", "sidePanel"],
+  "permissions": [
+    "activeTab",
+    "sidePanel",
+    "webRequest",
+    "webNavigation",
+    "scripting"
+  ],
   "host_permissions": ["<all_urls>"],
   "background": {
     "service_worker": "service-worker.js",
@@ -11,6 +17,7 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
+      "js": ["emissions.js", "emissions-script.js"],
       "css": ["styles.css"]
     }
   ],

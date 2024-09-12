@@ -1,28 +1,51 @@
-import { browser } from '@danhartley/emissions'
+/* eslint-disable no-unused-vars */
+/* eslint-disable no-undef */
 
-const getPageEmissions = (url) => {
-  console.log('url from service worker:', url)
-  ;(async () => {
-    await browser.registerServiceWorker()
+const setMyPageEmissions = async (urls) => {
+  try {
+    urls.forEach(async (url) => {
+      const response = await fetch(url)
+      const clonedResponse = response.clone()
+      const responseDetails = await getResponseDetails(
+        clonedResponse,
+        'browser'
+      )
 
-    const options = {
-      hostingOptions: {
-        verbose: true,
-        forceGreen: true,
-      },
-    }
+      if (responseDetails) {
+        await saveNetworkTraffic(responseDetails)
+      }
 
-    const { pageWeight, count, greenHosting, mgCO2 } =
-      await browser.getPageEmissions(url, options)
+      console.log('responseDetails: ', responseDetails)
 
-    console.log(`Report for ${url}`)
-    console.log('Page weight: ', `${pageWeight / 1000} Kbs`)
-    console.log('Requests ', count)
-    console.log('Emissions: ', `${mgCO2} mg of CO2`)
-    console.log(
-      greenHosting ? 'Hosting: green hosting' : 'Hosting: not green hosting'
-    )
+      return response
+    })
+  } catch (e) {
+    console.log(e)
+  }
+}
 
-    await browser.clearPageEmissions()
-  })()
+const getMyPageEmissions = async (url) => {
+  const options = {
+    hostingOptions: {
+      verbose: true,
+      forceGreen: true,
+    },
+  }
+
+  const { bytes, count, greenHosting, mgCO2 } = await browser.getPageEmissions(
+    url,
+    options
+  )
+
+  console.log(`Report for ${url}`)
+  console.log('Page weight: ', `${bytes / 1000} Kbs`)
+  console.log('Requests ', count)
+  console.log('Emissions: ', `${mgCO2} mg of CO2`)
+  console.log(
+    greenHosting ? 'Hosting: green hosting' : 'Hosting: not green hosting'
+  )
+
+  await browser.clearPageEmissions()
+
+  return { bytes, count, greenHosting, mgCO2 }
 }
