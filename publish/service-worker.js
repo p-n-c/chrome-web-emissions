@@ -24,6 +24,9 @@ chrome.action.onClicked.addListener((tab) => {
         args: [urlsArray],
       })
 
+      // remove currents urls
+      urlsArray = []
+
       // Fetch the emissions
       console.log('Fetch the emissions')
       console.log('tabId: ', tabId)
