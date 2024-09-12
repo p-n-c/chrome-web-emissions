@@ -31,26 +31,29 @@ chrome.action.onClicked.addListener((tab) => {
       console.log('Fetch the emissions')
       console.log('tabId: ', tabId)
       console.log('pageUrl: ', pageUrl)
-      chrome.scripting.executeScript(
-        {
-          target: { tabId },
-          function: showEmissions,
-          args: [pageUrl],
-        },
-        (response) => {
-          if (chrome.runtime.lastError) {
-            console.error(chrome.runtime.lastError)
-          } else if (response && response[0]) {
-            console.log('Show emissions data')
-            console.log(response[0])
 
-            chrome.runtime.sendMessage({
-              action: 'networkTraffic',
-              result: response[0].result,
-            })
+      setTimeout(() => {
+        chrome.scripting.executeScript(
+          {
+            target: { tabId },
+            function: showEmissions,
+            args: [pageUrl],
+          },
+          (response) => {
+            if (chrome.runtime.lastError) {
+              console.error(chrome.runtime.lastError)
+            } else if (response && response[0]) {
+              console.log('Show emissions data')
+              console.log(response[0])
+
+              chrome.runtime.sendMessage({
+                action: 'networkTraffic',
+                result: response[0].result,
+              })
+            }
           }
-        }
-      )
+        )
+      }, 2000)
     } else {
       console.log('No URLs to process for tab', tabId)
     }
