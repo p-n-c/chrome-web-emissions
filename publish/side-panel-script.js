@@ -1,6 +1,7 @@
 /* eslint-disable no-undef */
 const show = (id, value) => {
-  document.getElementById(id).innerText = `${id}: ${value}`
+  const displayValue = id === 'bytes' ? value / 1000 : value
+  document.getElementById(id).innerHTML = displayValue
 }
 
 document.addEventListener('DOMContentLoaded', () => {
