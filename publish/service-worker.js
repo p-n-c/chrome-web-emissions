@@ -48,7 +48,7 @@ chrome.action.onClicked.addListener((tab) => {
 
               chrome.runtime.sendMessage({
                 action: 'networkTraffic',
-                result: response[0].result,
+                result: { ...response[0].result, url: pageUrl },
               })
             }
           }

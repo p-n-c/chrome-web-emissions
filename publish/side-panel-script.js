@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log('Current page url received from service worker:', message.url)
 
       // Display the url in the panel
-      show('url', message.url)
+      // show('url', message.url)
     }
   })
 
