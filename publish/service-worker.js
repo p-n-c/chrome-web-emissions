@@ -6,7 +6,8 @@ chrome.action.onClicked.addListener((tab) => {
   chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true })
   console.log('tab: ', tab)
 })
-;(function () {
+
+const emissions = () => {
   console.log('Background script initialized')
   let urlsArray = []
   let listeners = {}
@@ -108,6 +109,10 @@ chrome.action.onClicked.addListener((tab) => {
     processUrls(tabId)
     removeListenerForTab(tabId)
   })
+}
+
+;(function () {
+  emissions()
 })()
 
 chrome.runtime.onConnect.addListener(async (port) => {
