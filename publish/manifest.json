@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "chrome-emissions-ext",
+  "name": "Chrome Emissions Extension",
   "version": "0.0.0.1",
   "permissions": [
     "activeTab",
@@ -12,14 +12,16 @@
   ],
   "host_permissions": ["<all_urls>"],
   "background": {
-    "service_worker": "service-worker.js",
+    "service_worker": "background/service-worker.js",
     "type": "module"
   },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["emissions.js", "emissions-script.js"],
-      "css": ["styles.css"]
+      "js": [
+        "content_scripts/js/emissions.js",
+        "content_scripts/js/emissions-script.js"
+      ]
     }
   ],
   "action": {},
@@ -30,6 +32,6 @@
     "128": "icons/icon128.png"
   },
   "side_panel": {
-    "default_path": "side-panel.html"
+    "default_path": "side_panel/side-panel.html"
   }
 }
