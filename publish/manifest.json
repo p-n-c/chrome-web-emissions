@@ -19,8 +19,8 @@
     {
       "matches": ["<all_urls>"],
       "js": [
-        "content_scripts/js/emissions.js",
-        "content_scripts/js/emissions-script.js"
+        "content_scripts/emissions.js",
+        "content_scripts/emissions-script.js"
       ]
     }
   ],
