@@ -115,6 +115,18 @@ const emissions = () => {
   emissions()
 })()
 
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (changeInfo.status === 'complete' && tab.url.startsWith('http')) {
+    console.clear()
+    console.log('Page changed!')
+    console.log('url:', tab.url)
+    chrome.runtime.sendMessage({
+      action: 'PageChange',
+      url: tab.url,
+    })
+  }
+})
+
 chrome.runtime.onConnect.addListener(async (port) => {
   console.log('Connected to panel')
 

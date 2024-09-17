@@ -12,9 +12,6 @@ document.addEventListener('DOMContentLoaded', () => {
   port.onMessage.addListener((message) => {
     if (message.from === 'service-worker') {
       console.log('Current page url received from service worker:', message.url)
-
-      // Display the url in the panel
-      // show('url', message.url)
     }
   })
 
@@ -26,6 +23,23 @@ document.addEventListener('DOMContentLoaded', () => {
       for (const [key, value] of Object.entries(message.result)) {
         show(key, value)
       }
+
+      show('processing', 'Results updated')
+    }
+  })
+
+  chrome.runtime.onMessage.addListener((message) => {
+    if (message.action === 'PageChange') {
+      console.log('PageChange in side panel')
+      console.log(message.result)
+
+      // Display the url in the panel
+      show('url', message.url)
+      show('bytes', 0)
+      show('count', 0)
+      show('greenHosting', '')
+      show('mgCO2', 0)
+      show('processing', 'Processing page…')
     }
   })
 })

@@ -4,12 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Page emissions</title>
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="side-panel.css" />
   </head>
   <body>
-    <h1>Results</h1>
+    <h1>Emissions report</h1>
   </body>
   <table>
+    <caption>
+      PAGE SUMMARY
+    </caption>
     <tr>
       <th>url</th>
       <th>kilobytes</th>
@@ -25,5 +28,6 @@
       <td id="mgCO2"></td>
     </tr>
   </table>
-  <script type="module" src="side-panel-script.js"></script>
+  <p id="processing">Processing page…</p>
+  <script type="module" src="side-panel.js"></script>
 </html>
