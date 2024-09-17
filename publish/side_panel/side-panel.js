@@ -25,13 +25,18 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       show('processing', 'Results updated')
+
+      setTimeout(() => {
+        show('processing', '')
+      }, 3000)
     }
   })
 
   chrome.runtime.onMessage.addListener((message) => {
     if (message.action === 'PageChange') {
       console.log('PageChange in side panel')
-      console.log(message.result)
+      console.log(message.url)
+      console.log(message.tabId)
 
       // Display the url in the panel
       show('url', message.url)
@@ -40,6 +45,10 @@ document.addEventListener('DOMContentLoaded', () => {
       show('greenHosting', '')
       show('mgCO2', 0)
       show('processing', 'Processing page…')
+
+      setTimeout(() => {
+        show('processing', 'Still processing page…')
+      }, 1000)
     }
   })
 })
