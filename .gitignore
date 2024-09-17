@@ -1,4 +1,8 @@
 node_modules
 .parcel-cache
 dist
+<<<<<<< Updated upstream
 publish.zip
+=======
+publish.zip
+>>>>>>> Stashed changes
