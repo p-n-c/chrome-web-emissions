@@ -5,9 +5,10 @@ chrome.action.onClicked.addListener((tab) => {
   chrome.sidePanel.open({ tabId: tab.id })
   chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true })
   console.log('tab: ', tab)
+  emissions(tab.id)
 })
 
-const emissions = () => {
+const emissions = (tabId) => {
   console.log('Background script initialized')
   let urlsArray = []
   let listeners = {}
@@ -56,9 +57,18 @@ const emissions = () => {
         )
       }, 2000)
     } else {
-      console.log('No URLs to process for tab', tabId)
+      if (tabId) {
+        console.log('No URLs to process for tab', tabId)
+        // chrome.scripting.executeScript({
+        //   target: { tabId },
+        //   function: reloadPage,
+        //   args: [pageUrl],
+        // })
+      }
     }
   }
+
+  processUrls(tabId)
 
   function setupListenerForTab(details) {
     const { tabId, url } = details
@@ -115,16 +125,25 @@ const emissions = () => {
   emissions()
 })()
 
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.status === 'complete' && tab.url.startsWith('http')) {
-    console.clear()
-    console.log('Page changed!')
-    console.log('url:', tab.url)
-    chrome.runtime.sendMessage({
-      action: 'PageChange',
-      url: tab.url,
-    })
-  }
+chrome.tabs.onActivated.addListener((activeInfo) => {
+  chrome.tabs.get(activeInfo.tabId, (tab) => {
+    // console.clear()
+    if (tab.url) {
+      // Send a message to your side panel to update the data
+      chrome.runtime.sendMessage({
+        action: 'PageChange',
+        url: tab.url,
+        tabId: tab.id,
+      })
+      chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        function: reloadPage,
+        args: [tab.url],
+      })
+      console.log('tabId: ', tab.id)
+      emissions(tab.id)
+    }
+  })
 })
 
 chrome.runtime.onConnect.addListener(async (port) => {
@@ -150,4 +169,8 @@ function captureEmissions(urls) {
 
 function showEmissions(pageUrl) {
   return getMyPageEmissions(pageUrl)
+}
+
+function reloadPage(pageUrl) {
+  myReloadPage(pageUrl)
 }

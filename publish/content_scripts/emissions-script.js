@@ -59,3 +59,8 @@ const getMyPageEmissions = async (url) => {
 
   return { bytes, count, greenHosting, mgCO2 }
 }
+
+const myReloadPage = (url) => {
+  console.log('myReloadPage: ', url)
+  window.location.reload()
+}
