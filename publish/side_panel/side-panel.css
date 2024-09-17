@@ -1,20 +1,39 @@
-caption {
-  text-align: left;
-  font-size: 0.8rem;
+body {
+  height: 100vh;
+  position: relative;
 }
 
-tr {
-  display: block;
-  float: left;
-}
-
-th,
-td {
-  display: block;
-  text-align: left;
-  padding: 0.5rem;
+h1 {
+  margin: 1rem 0 2rem;
 }
 
 p {
-  margin-left: 0.5rem;
+  margin: 1rem;
+
+  &#processing {
+    color: red;
+  }
+}
+
+dt {
+  font-weight: bold;
+  margin: 1rem;
+}
+
+dd {
+  margin: 1rem;
+}
+
+footer {
+  position: absolute;
+  bottom: 2rem;
+  left: 1rem;
+  width: 100%;
+}
+
+a {
+  color: black;
+  border-bottom: 1px solid black;
+  padding-bottom: 0.125rem;
+  text-decoration: none;
 }
