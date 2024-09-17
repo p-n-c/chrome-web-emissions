@@ -64,3 +64,8 @@ const myReloadPage = (url) => {
   console.log('myReloadPage: ', url)
   window.location.reload()
 }
+
+document.addEventListener('DOMContentLoaded', (event) => {
+  console.log(event)
+  chrome.runtime.sendMessage({ type: 'DOMContentLoaded' })
+})

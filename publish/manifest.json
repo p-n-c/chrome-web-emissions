@@ -22,7 +22,8 @@
       "js": [
         "content_scripts/emissions.js",
         "content_scripts/emissions-script.js"
-      ]
+      ],
+      "run_at": "document_start"
     }
   ],
   "action": {},

@@ -1,39 +1,28 @@
 /* eslint-disable no-undef */
 
-// Open the panel when the visitor clicks on the extension icon
-chrome.action.onClicked.addListener((tab) => {
-  chrome.sidePanel.open({ tabId: tab.id })
-  chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true })
-  console.log('tab: ', tab)
-  emissions(tab.id)
-})
-
-const emissions = (tabId) => {
-  console.log('Background script initialized')
-  let urlsArray = []
+const emissions = () => {
+  let urlsArray = {}
   let listeners = {}
   let pageUrl = ''
 
-  function processUrls(tabId) {
-    console.log('Processing URLs for tab', tabId)
-    if (urlsArray.length > 0) {
-      console.log('URLs to process:', urlsArray)
+  for (let [key] of Object.entries(urlsArray)) {
+    urlsArray[key] = []
+  }
+
+  const processUrls = (tabId) => {
+    if (urlsArray[tabId]?.length > 0) {
+      console.log(`Processing ${urlsArray[tabId].length} URLs for tab ${tabId}`)
 
       // Capture the emissions
       chrome.scripting.executeScript({
         target: { tabId: tabId },
         function: captureEmissions,
-        args: [urlsArray],
+        args: [urlsArray[tabId]],
       })
 
-      // remove currents urls
-      urlsArray = []
-
-      // Fetch the emissions
-      console.log('Fetch the emissions')
-      console.log('tabId: ', tabId)
-      console.log('pageUrl: ', pageUrl)
-
+      // Add artificial delay to allow time for requests to be processed
+      const DELAY = 5000
+      // Instruct the side panel to display emissions
       setTimeout(() => {
         chrome.scripting.executeScript(
           {
@@ -47,7 +36,6 @@ const emissions = (tabId) => {
             } else if (response && response[0]) {
               console.log('Show emissions data')
               console.log(response[0])
-
               chrome.runtime.sendMessage({
                 action: 'networkTraffic',
                 result: { ...response[0].result, url: pageUrl },
@@ -55,41 +43,39 @@ const emissions = (tabId) => {
             }
           }
         )
-      }, 2000)
+        // Prevent listeners from running on other tabs
+        removeListenerForTab(tabId)
+      }, DELAY)
     } else {
       if (tabId) {
         console.log('No URLs to process for tab', tabId)
-        // chrome.scripting.executeScript({
-        //   target: { tabId },
-        //   function: reloadPage,
-        //   args: [pageUrl],
-        // })
       }
     }
   }
 
-  processUrls(tabId)
-
   function setupListenerForTab(details) {
     const { tabId, url } = details
-    console.log('Setting up listener for tab', tabId)
     if (!listeners[tabId]) {
-      listeners[tabId] = (details) => {
-        console.log('Captured URL:', details.url)
-        console.log('details: ', details)
-        console.log('tabId: ', tabId)
-        urlsArray.push(details.url)
+      listeners[tabId] = () => {
+        if (!urlsArray[tabId]) urlsArray[tabId] = []
+        urlsArray[tabId].push(url)
         pageUrl = url
       }
       chrome.webRequest.onCompleted.addListener(listeners[tabId], {
         urls: ['<all_urls>'],
       })
-      console.log('Listener set up for tab', tabId)
+      console.log('Listener set up for tab', tabId, ' for url: ', url)
     }
   }
 
+  chrome.webNavigation.onBeforeNavigate.addListener((details) => {
+    if (details.frameId === 0 && details.url !== 'about:blank') {
+      console.log('onBeforeNavigate fired', details)
+      setupListenerForTab(details)
+    }
+  })
+
   function removeListenerForTab(tabId) {
-    console.log('Removing listener for tab', tabId)
     if (listeners[tabId]) {
       chrome.webRequest.onCompleted.removeListener(listeners[tabId])
       delete listeners[tabId]
@@ -97,37 +83,33 @@ const emissions = (tabId) => {
     }
   }
 
-  chrome.webNavigation.onBeforeNavigate.addListener((details) => {
-    console.log('onBeforeNavigate fired', details)
-    if (details.frameId === 0) {
-      console.log('Setting up listener for tab', details.tabId)
-      setupListenerForTab(details)
-    }
-  })
-
-  chrome.webNavigation.onCompleted.addListener((details) => {
-    console.log('onCompleted fired', details)
-    // Main frame only
-    if (details.frameId === 0) {
-      console.log('Processing URLs for tab', details.tabId)
-      processUrls(details.tabId)
-      removeListenerForTab(details.tabId)
-    }
-  })
-
   chrome.tabs.onRemoved.addListener((tabId) => {
-    processUrls(tabId)
     removeListenerForTab(tabId)
   })
+
+  return processUrls
 }
 
 ;(function () {
-  emissions()
+  // Open the panel when the visitor clicks on the extension icon
+  chrome.action.onClicked.addListener((tab) => {
+    chrome.sidePanel.open({ tabId: tab.id })
+    chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true })
+  })
+
+  // Initialise the emissions function, including instantiating the request listeners
+  const processUrls = emissions()
+
+  chrome.runtime.onMessage.addListener((message, sender) => {
+    if (message.type === 'DOMContentLoaded') {
+      processUrls(sender.tab.id)
+    }
+  })
 })()
 
 chrome.tabs.onActivated.addListener((activeInfo) => {
   chrome.tabs.get(activeInfo.tabId, (tab) => {
-    // console.clear()
+    console.log('Active tabId: ', tab.id)
     if (tab.url) {
       // Send a message to your side panel to update the data
       chrome.runtime.sendMessage({
@@ -135,32 +117,14 @@ chrome.tabs.onActivated.addListener((activeInfo) => {
         url: tab.url,
         tabId: tab.id,
       })
-      chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        function: reloadPage,
-        args: [tab.url],
-      })
-      console.log('tabId: ', tab.id)
-      emissions(tab.id)
+      // Send a message to content_scripts to update the page
+      // chrome.scripting.executeScript({
+      //   target: { tabId: tab.id },
+      //   function: reloadPage,
+      //   args: [tab.url],
+      // })
     }
   })
-})
-
-chrome.runtime.onConnect.addListener(async (port) => {
-  console.log('Connected to panel')
-
-  const [tab] = await chrome.tabs.query({
-    active: true,
-    lastFocusedWindow: true,
-  })
-
-  // Send the url of the current tab to the panel via the port
-  if (port.name === 'panel-connection') {
-    port.postMessage({
-      from: 'service-worker',
-      url: tab.url,
-    })
-  }
 })
 
 function captureEmissions(urls) {
