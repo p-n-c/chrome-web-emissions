@@ -34,10 +34,9 @@ const emissions = () => {
             if (chrome.runtime.lastError) {
               console.error(chrome.runtime.lastError)
             } else if (response && response[0]) {
-              console.log('Show emissions data')
-              console.log(response[0])
+              console.log('Send network-traffic')
               chrome.runtime.sendMessage({
-                action: 'networkTraffic',
+                action: 'network-traffic',
                 result: { ...response[0].result, url: pageUrl },
               })
             }
@@ -87,6 +86,20 @@ const emissions = () => {
     removeListenerForTab(tabId)
   })
 
+  chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+    console.log('before: ', urlsArray[tabId])
+    if (changeInfo.url) {
+      urlsArray[tabId] = []
+      console.log('after: ', urlsArray[tabId])
+      console.log('Send page-change')
+      chrome.runtime.sendMessage({
+        action: 'page-change',
+        url: changeInfo.url,
+        tabId,
+      })
+    }
+  })
+
   return processUrls
 }
 
@@ -107,34 +120,10 @@ const emissions = () => {
   })
 })()
 
-chrome.tabs.onActivated.addListener((activeInfo) => {
-  chrome.tabs.get(activeInfo.tabId, (tab) => {
-    console.log('Active tabId: ', tab.id)
-    if (tab.url) {
-      // Send a message to your side panel to update the data
-      chrome.runtime.sendMessage({
-        action: 'PageChange',
-        url: tab.url,
-        tabId: tab.id,
-      })
-      // Send a message to content_scripts to update the page
-      // chrome.scripting.executeScript({
-      //   target: { tabId: tab.id },
-      //   function: reloadPage,
-      //   args: [tab.url],
-      // })
-    }
-  })
-})
-
 function captureEmissions(urls) {
   setMyPageEmissions(urls)
 }
 
 function showEmissions(pageUrl) {
   return getMyPageEmissions(pageUrl)
-}
-
-function reloadPage(pageUrl) {
-  myReloadPage(pageUrl)
 }

@@ -6,25 +6,16 @@ const show = (id, value) => {
 
 document.addEventListener('DOMContentLoaded', () => {
   chrome.runtime.onMessage.addListener((message) => {
-    if (message.action === 'networkTraffic') {
+    if (message?.action === 'network-traffic') {
       for (const [key, value] of Object.entries(message.result)) {
         show(key, value)
       }
     }
+    if (message?.action === 'page-change') {
+      show('url', message.url)
+      notification()
+    }
   })
-})
-
-chrome.runtime.onMessage.addListener((message) => {
-  console.log(message)
-  if (message.action === 'PageChange') {
-    console.log(message)
-    notification()
-    show('url', message.url)
-    show('bytes', 0)
-    show('count', 0)
-    show('greenHosting', '')
-    show('mgCO2', 0)
-  }
 })
 
 function notification() {
