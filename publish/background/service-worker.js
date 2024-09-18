@@ -4,12 +4,16 @@ const emissions = () => {
   let urlsArray = {}
   let listeners = {}
   let pageUrl = ''
+  let tabId = -1
 
-  for (let [key] of Object.entries(urlsArray)) {
-    urlsArray[key] = []
-  }
+  const processUrls = () => {
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      let currentTab = tabs[0] // Get the active tab
+      pageUrl = currentTab.url // Get the URL of the active tab
+      tabId = currentTab.tab.id
+      console.log('Current URL:', pageUrl)
+    })
 
-  const processUrls = (tabId) => {
     if (urlsArray[tabId]?.length > 0) {
       console.log(`Processing ${urlsArray[tabId].length} URLs for tab ${tabId}`)
 
@@ -42,8 +46,6 @@ const emissions = () => {
             }
           }
         )
-        // Prevent listeners from running on other tabs
-        removeListenerForTab(tabId)
       }, DELAY)
     } else {
       if (tabId) {
@@ -54,29 +56,39 @@ const emissions = () => {
 
   function setupListenerForTab(details) {
     const { tabId, url } = details
-    if (!listeners[tabId]) {
-      listeners[tabId] = () => {
-        if (!urlsArray[tabId]) urlsArray[tabId] = []
-        urlsArray[tabId].push(url)
-        pageUrl = url
+
+    // Set up a new listener
+    listeners[tabId] = () => {
+      if (!urlsArray[tabId]) urlsArray[tabId] = []
+      if (!urlsArray[tabId].includes(details.url)) {
+        urlsArray[tabId].push(details.url)
       }
-      chrome.webRequest.onCompleted.addListener(listeners[tabId], {
-        urls: ['<all_urls>'],
-      })
-      console.log('Listener set up for tab', tabId, ' for url: ', url)
     }
+
+    // Add the new listener
+    chrome.webRequest.onBeforeRequest.addListener(
+      listeners[tabId],
+      { urls: ['<all_urls>'], tabId },
+      []
+    )
+
+    console.log('Listener set up for tab', tabId, ' for url: ', url)
   }
 
-  chrome.webNavigation.onBeforeNavigate.addListener((details) => {
-    if (details.frameId === 0 && details.url !== 'about:blank') {
-      console.log('onBeforeNavigate fired', details)
-      setupListenerForTab(details)
-    }
-  })
+  // Use the webRequest API to capture all requests
+  chrome.webRequest.onBeforeRequest.addListener(
+    (details) => {
+      if (details.tabId !== -1) {
+        // Ensure the request comes from a valid tab
+        setupListenerForTab(details)
+      }
+    },
+    { urls: ['<all_urls>'] }
+  )
 
   function removeListenerForTab(tabId) {
     if (listeners[tabId]) {
-      chrome.webRequest.onCompleted.removeListener(listeners[tabId])
+      chrome.webRequest.onBeforeRequest.removeListener(listeners[tabId])
       delete listeners[tabId]
       console.log('Listener removed for tab', tabId)
     }
@@ -87,10 +99,8 @@ const emissions = () => {
   })
 
   chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
-    console.log('before: ', urlsArray[tabId])
     if (changeInfo.url) {
       urlsArray[tabId] = []
-      console.log('after: ', urlsArray[tabId])
       console.log('Send page-change')
       chrome.runtime.sendMessage({
         action: 'page-change',
@@ -111,11 +121,11 @@ const emissions = () => {
   })
 
   // Initialise the emissions function, including instantiating the request listeners
-  const processUrls = emissions()
+  const _processUrls = emissions()
 
-  chrome.runtime.onMessage.addListener((message, sender) => {
+  chrome.runtime.onMessage.addListener((message) => {
     if (message.type === 'DOMContentLoaded') {
-      processUrls(sender.tab.id)
+      _processUrls()
     }
   })
 })()

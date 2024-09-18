@@ -7,12 +7,17 @@ const show = (id, value) => {
 document.addEventListener('DOMContentLoaded', () => {
   chrome.runtime.onMessage.addListener((message) => {
     if (message?.action === 'network-traffic') {
+      console.log('message.result: ', message.result)
       for (const [key, value] of Object.entries(message.result)) {
         show(key, value)
       }
     }
     if (message?.action === 'page-change') {
       show('url', message.url)
+      show('bytes', 0)
+      show('count', 0)
+      show('greenHosting', '')
+      show('mgCO2', 0)
       notification()
     }
   })
