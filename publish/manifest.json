@@ -3,19 +3,24 @@
   "name": "Sustainability report",
   "version": "0.0.0.1",
   "description": "CO2 emissions for current page",
-  "permissions": ["activeTab", "sidePanel", "webRequest", "scripting", "tabs"],
+  "permissions": [
+    "activeTab",
+    "sidePanel",
+    "scripting",
+    "tabs",
+    "webRequest",
+    "storage",
+    "webRequestBlocking"
+  ],
   "host_permissions": ["<all_urls>"],
   "background": {
-    "service_worker": "background/sw.js",
+    "service_worker": "background/service-worker.js",
     "type": "module"
   },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": [
-        "content_scripts/emissions.js",
-        "content_scripts/emissions-script.js"
-      ],
+      "js": ["content_scripts/emissions-script.js"],
       "run_at": "document_start"
     }
   ],

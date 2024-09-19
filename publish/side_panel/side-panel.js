@@ -4,38 +4,18 @@ const show = (id, value) => {
   document.getElementById(id).innerHTML = displayValue
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  chrome.runtime.onMessage.addListener((message) => {
-    if (message?.action === 'network-traffic') {
-      console.log('message.result: ', message.result)
-      for (const [key, value] of Object.entries(message.result)) {
-        show(key, value)
-      }
-    }
-    if (message?.action === 'page-change') {
-      show('url', message.url)
-      show('bytes', 0)
-      show('count', 0)
-      show('greenHosting', '')
-      show('mgCO2', 0)
-      notification()
-    }
-  })
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === 'network-traffic') {
+    // Handle the network traffic data
+    console.log('Received network traffic data:', message.data)
+
+    // Update your UI or perform any other actions with the data
+    updateNetworkTrafficUI(message.data)
+  }
 })
 
-function notification() {
-  let countdownValue = 5
-
-  const countdownDisplay = document.getElementById('countdown')
-
-  const countdownInterval = setInterval(() => {
-    countdownDisplay.textContent = `The report will appear in ${countdownValue} seconds.`
-    countdownValue--
-    if (countdownValue < 0) {
-      clearInterval(countdownInterval)
-      countdownDisplay.textContent = ''
-    }
-  }, 1000)
+const updateNetworkTrafficUI = (data) => {
+  for (const [key, value] of Object.entries(data)) {
+    show(key, value)
+  }
 }
-
-notification()
