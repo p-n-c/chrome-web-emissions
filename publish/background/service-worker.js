@@ -1492,30 +1492,24 @@ See https://developers.thegreenwebfoundation.org/co2js/methods/ to learn more ab
     chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true })
   })
 
-  // In your service worker (background.js)
+  // service-worker.js)
   function sendMessageToSidePanel(data) {
     chrome.sidePanel.getOptions({}, (options) => {
       if (options.enabled) {
-        chrome.tabs.query(
-          { active: true, currentWindow: true },
-          function (tabs) {
-            chrome.tabs.sendMessage(
-              tabs[0].id,
-              {
-                action: 'network-traffic',
-                data: data,
-              },
-              (response) => {
-                if (chrome.runtime.lastError) {
-                  console.log(
-                    'Failed to send message: ',
-                    chrome.runtime.lastError.message
-                  )
-                } else {
-                  console.log('Message sent successfully')
-                }
-              }
-            )
+        chrome.runtime.sendMessage(
+          {
+            action: 'network-traffic',
+            data,
+          },
+          (response) => {
+            if (chrome.runtime.lastError) {
+              console.log(
+                'Failed to send message: ',
+                chrome.runtime.lastError.message
+              )
+            } else {
+              console.log('Message sent successfully')
+            }
           }
         )
       } else {

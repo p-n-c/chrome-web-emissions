@@ -9,8 +9,7 @@
     "scripting",
     "tabs",
     "webRequest",
-    "storage",
-    "webRequestBlocking"
+    "storage"
   ],
   "host_permissions": ["<all_urls>"],
   "background": {
