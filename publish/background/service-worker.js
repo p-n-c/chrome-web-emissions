@@ -1484,7 +1484,11 @@ See https://developers.thegreenwebfoundation.org/co2js/methods/ to learn more ab
   chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (changeInfo.url) {
       // Check emissions data has been cleared before
-      clearNetworkTraffic()
+      try {
+        clearNetworkTraffic()
+      } catch (e) {
+        console.log(e)
+      }
     }
   })
 
