@@ -4,18 +4,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const show = (id, value) => {
     if (id === 'data') return
     const displayValue = id === 'bytes' ? value / 1000 : value
-    document.getElementById(id).innerHTML = displayValue
+    const element = document.getElementById(id)
+    if (element) element.innerText = displayValue
   }
 
-  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  chrome.runtime.onMessage.addListener((message) => {
     if (message.action === 'network-traffic') {
       // Handle the network traffic data
-      console.log('Received network traffic data:', message.data)
-
-      // Update your UI or perform any other actions with the data
       updateNetworkTrafficUI(message.data)
-
-      return true
     }
   })
 

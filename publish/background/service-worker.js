@@ -1,7 +1,5 @@
 /* eslint-disable no-undef */
 chrome.runtime.onInstalled.addListener(() => {
-  console.log('Extension installed')
-
   const DB = 'emissionsDB'
   const STORE = 'emissions'
 
@@ -233,12 +231,26 @@ chrome.runtime.onInstalled.addListener(() => {
     })
   }
 
+  const getCurrentTab = async () => {
+    let queryOptions = { active: true, lastFocusedWindow: true }
+    let [tab] = await chrome.tabs.query(queryOptions)
+
+    if (tab && tab.active) {
+      console.log('Tab is active:', tab)
+      return tab
+    } else {
+      console.log('No active tab found or tab is inactive.')
+      return null
+    }
+  }
+
   const saveNetworkTraffic = async (responseDetails) => {
     const db = await openDatabase()
     const tx = db.transaction(STORE, 'readwrite')
     const emissions = tx.objectStore(STORE)
 
     const record = {
+      key: responseDetails.key,
       url: responseDetails.url,
       bytes: responseDetails.bytes,
       uncompressedBytes: responseDetails.uncompressedBytes,
@@ -1451,7 +1463,32 @@ See https://developers.thegreenwebfoundation.org/co2js/methods/ to learn more ab
     }
   }
 
-  const getNetworkTraffic = async (url, options) => {
+  const clearNetworkTraffic = async () => {
+    const db = await openDatabase()
+    const tx = db.transaction(STORE, 'readwrite')
+    const store = tx.objectStore(STORE)
+
+    store.clear().onsuccess = function () {
+      console.log(`Object store ${STORE} cleared.`)
+    }
+
+    tx.oncomplete = function () {
+      db.close()
+    }
+
+    tx.onerror = function (event) {
+      console.error('Transaction error:', event.target.error)
+    }
+  }
+
+  chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+    if (changeInfo.url) {
+      // Check emissions data has been cleared before
+      clearNetworkTraffic()
+    }
+  })
+
+  const getNetworkTraffic = async (key, url, options) => {
     try {
       const domain = getDomainFromURL(url)
 
@@ -1460,7 +1497,8 @@ See https://developers.thegreenwebfoundation.org/co2js/methods/ to learn more ab
       const store = tx.objectStore(STORE)
 
       const records = await getRecords(store)
-      const bytes = records.reduce((acc, curr) => acc + curr.bytes, 0)
+      const tabRecords = records.filter((record) => record.key === key)
+      const bytes = tabRecords.reduce((acc, curr) => acc + curr.bytes, 0)
       const { emissions, greenHosting } = await getEmissions({
         bytes,
         hostingOptions: getHostingOptions(options, domain),
@@ -1473,7 +1511,7 @@ See https://developers.thegreenwebfoundation.org/co2js/methods/ to learn more ab
         url,
         bytes,
         greenHosting,
-        responses: records,
+        responses: tabRecords,
         emissions,
         groupedByType,
         groupedByTypeBytes,
@@ -1492,26 +1530,14 @@ See https://developers.thegreenwebfoundation.org/co2js/methods/ to learn more ab
     chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true })
   })
 
-  // service-worker.js)
+  // Update network traffic
   function sendMessageToSidePanel(data) {
     chrome.sidePanel.getOptions({}, (options) => {
       if (options.enabled) {
-        chrome.runtime.sendMessage(
-          {
-            action: 'network-traffic',
-            data,
-          },
-          (response) => {
-            if (chrome.runtime.lastError) {
-              console.log(
-                'Failed to send message: ',
-                chrome.runtime.lastError.message
-              )
-            } else {
-              console.log('Message sent successfully')
-            }
-          }
-        )
+        chrome.runtime.sendMessage({
+          action: 'network-traffic',
+          data,
+        })
       } else {
         console.log('Side panel is not enabled')
       }
@@ -1522,7 +1548,7 @@ See https://developers.thegreenwebfoundation.org/co2js/methods/ to learn more ab
     async (details) => {
       if (details.tabId !== -1) {
         // Ensure it's a page request and not an extension request
-        const { url } = details
+        const { url, initiator } = details
 
         const response = await fetch(url)
         const clonedResponse = response.clone()
@@ -1531,11 +1557,16 @@ See https://developers.thegreenwebfoundation.org/co2js/methods/ to learn more ab
           'browser'
         )
 
-        if (responseDetails) {
+        const key = details.tabId
+        const activeTab = await getCurrentTab()
+        console.log('activeTab: ', activeTab)
+        const isActiveTab = activeTab?.id === details.tabId
+
+        if (isActiveTab && responseDetails) {
+          responseDetails.key = key
+
           await saveNetworkTraffic(responseDetails)
 
-          const url = 'https://p-n-c.github.io/website'
-          // const url = window.location.origin
           const options = {
             hostingOptions: {
               verbose: true,
@@ -1544,9 +1575,9 @@ See https://developers.thegreenwebfoundation.org/co2js/methods/ to learn more ab
           }
 
           const { bytes, count, greenHosting, mgCO2, emissions, data } =
-            await getNetworkTraffic(url, options)
+            await getNetworkTraffic(key, initiator, options)
 
-          console.log(`Report for ${url}`)
+          console.log(`Report for ${activeTab.url}`)
           console.log('Page weight: ', `${bytes / 1000} Kbs`)
           console.log('Requests ', count)
           console.log('Emissions ', emissions)
@@ -1559,6 +1590,7 @@ See https://developers.thegreenwebfoundation.org/co2js/methods/ to learn more ab
           console.log('Data ', data)
 
           sendMessageToSidePanel({
+            url: activeTab.url,
             bytes,
             count,
             greenHosting,
