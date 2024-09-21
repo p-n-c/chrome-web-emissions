@@ -10,7 +10,7 @@
     <h1>Emissions report</h1>
     <main>
       <dl>
-        <dt>url</dt>
+        <dt>Page</dt>
         <dd id="url">&nbsp;</dd>
         <dt>Requested data in kilobytes</dt>
         <dd id="bytes">&nbsp;</dd>
@@ -21,12 +21,28 @@
         <dt>Emissions in mgCO2</dt>
         <dd id="mgCO2">&nbsp;</dd>
       </dl>
+
+      <br />
+
+      <h2 class="hidden">Grouped by type</h2>
+      <div id="document"></div>
+      <div id="script"></div>
+      <div id="image"></div>
+      <div id="other"></div>
     </main>
+    <aside>
+      <p id="message">Please reload the page to capture website emissions.</p>
+    </aside>
     <footer>
       Emissions report by
       <a href="https://p-n-c.github.io/website/">People and Code</a>
     </footer>
   </body>
+
+  <template id="dl-template"
+    ><dt></dt>
+    <dd></dd
+  ></template>
 
   <p id="progress"></p>
   <script type="module" src="side-panel.js"></script>

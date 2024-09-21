@@ -231,10 +231,8 @@ const getCurrentTab = async () => {
   let [tab] = await chrome.tabs.query(queryOptions)
 
   if (tab && tab.active) {
-    console.log('Tab is active:', tab)
     return tab
   } else {
-    console.log('No active tab found or tab is inactive.')
     return null
   }
 }
@@ -1463,13 +1461,12 @@ const clearNetworkTraffic = async () => {
 }
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.url) {
-    // Check emissions data has been cleared before
-    try {
-      clearNetworkTraffic()
-    } catch (e) {
-      console.log(e)
-    }
+  try {
+    console.clear()
+    console.log('Network traffic cleared')
+    clearNetworkTraffic()
+  } catch (e) {
+    console.log(e)
   }
 })
 
@@ -1529,60 +1526,50 @@ function sendMessageToSidePanel(data) {
   })
 }
 
-chrome.webRequest.onCompleted.addListener(
-  async (details) => {
-    if (details.tabId !== -1) {
-      // Ensure it's a page request and not an extension request
-      const { url, initiator } = details
+const handleRequest = async (details) => {
+  if (details.tabId !== -1) {
+    // Ensure it's a page request and not an extension request
+    const { url, initiator } = details
 
-      const response = await fetch(url)
-      const clonedResponse = response.clone()
-      const responseDetails = await getResponseDetails(
-        clonedResponse,
-        'browser'
-      )
+    const response = await fetch(url)
+    const clonedResponse = response.clone()
+    const responseDetails = await getResponseDetails(clonedResponse, 'browser')
+    const activeTab = await getCurrentTab()
 
-      const key = details.tabId
-      const activeTab = await getCurrentTab()
-      console.log('activeTab: ', activeTab)
-      const isActiveTab = activeTab?.id === details.tabId
+    const isActiveTab = activeTab?.id === details.tabId
 
-      if (isActiveTab && responseDetails) {
-        responseDetails.key = key
+    if (isActiveTab && responseDetails) {
+      const key = `${details.tabId}:${activeTab.url}`
+      responseDetails.key = key
 
-        await saveNetworkTraffic(responseDetails)
+      await saveNetworkTraffic(responseDetails)
 
-        const options = {
-          hostingOptions: {
-            verbose: true,
-            forceGreen: true,
-          },
-        }
-
-        const { bytes, count, greenHosting, mgCO2, emissions, data } =
-          await getNetworkTraffic(key, initiator, options)
-
-        console.log(`Report for ${activeTab.url}`)
-        console.log('Page weight: ', `${bytes / 1000} Kbs`)
-        console.log('Requests ', count)
-        console.log('Emissions ', emissions)
-        console.log('Emissions: ', `${mgCO2} mg of CO2`)
-        console.log(
-          greenHosting ? 'Hosting: green hosting' : 'Hosting: not green hosting'
-        )
-        console.log('Data ', data)
-
-        sendMessageToSidePanel({
-          url: activeTab.url,
-          bytes,
-          count,
-          greenHosting,
-          mgCO2,
-          emissions,
-          data,
-        })
+      const options = {
+        hostingOptions: {
+          verbose: true,
+          forceGreen: true,
+        },
       }
+
+      const { bytes, count, greenHosting, mgCO2, emissions, data } =
+        await getNetworkTraffic(key, initiator, options)
+
+      console.log('Data ', data)
+
+      sendMessageToSidePanel({
+        url: activeTab.url,
+        bytes,
+        count,
+        greenHosting,
+        mgCO2,
+        emissions,
+        data,
+      })
     }
-  },
+  }
+}
+
+chrome.webRequest.onCompleted.addListener(
+  handleRequest,
   { urls: ['<all_urls>'] } // This filter controls which URLs you listen to
 )

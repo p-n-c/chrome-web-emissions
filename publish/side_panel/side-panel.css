@@ -1,31 +1,32 @@
 body {
   height: 100vh;
-  position: relative;
+  padding: 2rem;
 }
 
-h1 {
-  margin: 1rem 0 2rem;
+h2 {
+  font-size: 1.1rem;
 }
 
 p {
-  margin: 1rem;
+  padding: 1rem;
+  border-radius: 5px;
+  font-size: 1.1rem;
 
-  &#processing {
-    color: red;
+  &#message {
+    color: black;
+    background-color: orange;
   }
 }
 
 dt {
   font-weight: bold;
-  margin: 1rem;
 }
 
 dd {
-  margin: 1rem;
+  margin: 1rem 0;
 }
 
 footer {
-  position: absolute;
   bottom: 2rem;
   left: 1rem;
   width: 100%;
@@ -36,4 +37,8 @@ a {
   border-bottom: 1px solid black;
   padding-bottom: 0.125rem;
   text-decoration: none;
+}
+
+.hidden {
+  display: none;
 }
