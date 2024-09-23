@@ -9,6 +9,7 @@
   <body>
     <h1>Emissions report</h1>
     <main>
+      <h2>Summary</h2>
       <dl>
         <dt>Page</dt>
         <dd id="url">&nbsp;</dd>
@@ -22,16 +23,16 @@
         <dd id="mgCO2">&nbsp;</dd>
       </dl>
 
-      <br />
-
-      <h2 class="hidden">Grouped by type</h2>
-      <div id="document"></div>
-      <div id="script"></div>
-      <div id="image"></div>
-      <div id="other"></div>
+      <h2 class="hidden">Requests grouped by type</h2>
+      <section id="document" class="hidden">document</section>
+      <section id="script" class="hidden">script</section>
+      <section id="image" class="hidden">image</section>
+      <section id="other" class="hidden">other</section>
     </main>
     <aside>
-      <p id="message">Please reload the page to capture website emissions.</p>
+      <button id="notification">
+        Please reload the page to capture website emissions.
+      </button>
     </aside>
     <footer>
       Emissions report by

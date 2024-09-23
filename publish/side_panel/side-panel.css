@@ -7,12 +7,12 @@ h2 {
   font-size: 1.1rem;
 }
 
-p {
+button {
   padding: 1rem;
-  border-radius: 5px;
+  border-radius: 4px;
   font-size: 1.1rem;
 
-  &#message {
+  &#notification {
     color: black;
     background-color: orange;
   }
@@ -27,9 +27,7 @@ dd {
 }
 
 footer {
-  bottom: 2rem;
-  left: 1rem;
-  width: 100%;
+  margin: 2rem 0;
 }
 
 a {

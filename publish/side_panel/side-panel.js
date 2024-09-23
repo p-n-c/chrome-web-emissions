@@ -18,6 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('other').innerHTML = ''
   }
 
+  const notification = document.getElementById('notification')
+
   chrome.runtime.onMessage.addListener((message) => {
     if (message.action === 'network-traffic') {
       for (const [key, value] of Object.entries(message.data)) {
@@ -63,7 +65,21 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (e) {
         console.log(e)
       }
-      document.getElementById('message').style.display = 'none'
+      notification.style.display = 'none'
     }
+  })
+
+  chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+    chrome.windows.getCurrent({ populate: true }, (currentWindow) => {
+      if (
+        changeInfo.status === 'complete' &&
+        tab.active &&
+        tab.windowId === currentWindow.id
+      ) {
+        console.log('The active tab in this window has been refreshed')
+        requests = []
+        key = ''
+      }
+    })
   })
 })
