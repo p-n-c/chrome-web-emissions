@@ -68,18 +68,4 @@ document.addEventListener('DOMContentLoaded', () => {
       notification.style.display = 'none'
     }
   })
-
-  chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-    chrome.windows.getCurrent({ populate: true }, (currentWindow) => {
-      if (
-        changeInfo.status === 'complete' &&
-        tab.active &&
-        tab.windowId === currentWindow.id
-      ) {
-        console.log('The active tab in this window has been refreshed')
-        requests = []
-        key = ''
-      }
-    })
-  })
 })
