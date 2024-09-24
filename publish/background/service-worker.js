@@ -102,6 +102,7 @@ const getBytes = ({
   uncompressedBytes,
   encoding,
   compressionOptions,
+  resourceType,
 }) => {
   if (compressedBytes !== 0) return compressedBytes
 
@@ -110,11 +111,68 @@ const getBytes = ({
       encoding,
       bytes: uncompressedBytes,
       compressionOptions,
+      resourceType,
     }) || 0
   )
 }
 
-const compressUncompressedBytes = ({ encoding, bytes, compressionOptions }) => {
+const estimateBrotliCompressedSize = (bytes, requestType) => {
+  // Define compression ratio matrix based on content type and file size
+  const compressionMatrix = {
+    document: [
+      { sizeThreshold: 50000, compressionRatio: 0.6, brotliLevel: 5 },
+      { sizeThreshold: 100000, compressionRatio: 0.4, brotliLevel: 6 },
+      { sizeThreshold: Infinity, compressionRatio: 0.2, brotliLevel: 8 },
+    ],
+    script: [
+      { sizeThreshold: 20000, compressionRatio: 0.7, brotliLevel: 5 },
+      { sizeThreshold: 100000, compressionRatio: 0.5, brotliLevel: 6 },
+      { sizeThreshold: Infinity, compressionRatio: 0.3, brotliLevel: 8 },
+    ],
+    css: [
+      { sizeThreshold: 10000, compressionRatio: 0.7, brotliLevel: 4 },
+      { sizeThreshold: 100000, compressionRatio: 0.5, brotliLevel: 5 },
+      { sizeThreshold: Infinity, compressionRatio: 0.3, brotliLevel: 8 },
+    ],
+    image: [
+      { sizeThreshold: Infinity, compressionRatio: 0.95, brotliLevel: 1 }, // Minimal compression for images
+    ],
+    other: [
+      { sizeThreshold: 50000, compressionRatio: 0.6, brotliLevel: 5 },
+      { sizeThreshold: 100000, compressionRatio: 0.4, brotliLevel: 6 },
+      { sizeThreshold: Infinity, compressionRatio: 0.2, brotliLevel: 8 },
+    ],
+  }
+
+  // No compression for video or fonts
+  if (requestType === 'video' || requestType === 'font') return bytes
+
+  // Check if request type exists in the matrix
+  if (!compressionMatrix[requestType]) {
+    throw new Error('Unsupported content type')
+  }
+
+  // Find appropriate compression ratio and level based on file size
+  for (const {
+    sizeThreshold,
+    compressionRatio,
+    brotliLevel,
+  } of compressionMatrix[requestType]) {
+    if (bytes <= sizeThreshold) {
+      const compressedBytes = bytes * compressionRatio
+      return { compressedBytes, brotliLevel }
+    }
+  }
+
+  return null // This shouldn't happen if contentType is valid
+}
+
+const compressUncompressedBytes = ({
+  encoding,
+  bytes,
+  compressionOptions,
+  resourceType,
+}) => {
   // default compression rates
   let BR = compressionRates.brotli.find((b) => b.level === 3).rate
   let GZIP = compressionRates.gzip.find((g) => g.level === 5).rate
@@ -130,11 +188,13 @@ const compressUncompressedBytes = ({ encoding, bytes, compressionOptions }) => {
         ?.rate || GZIP
   }
 
-  let ratio
+  let ratio, brotliBytes
   switch (encoding) {
     case 'br':
       ratio = BR
-      break
+      // override estimate with brotli specific algorithm
+      brotliBytes = estimateBrotliCompressedSize(bytes, resourceType)
+      return brotliBytes?.compressedBytes || bytes
     case 'gzip':
       ratio = GZIP
       break
@@ -172,32 +232,32 @@ const getResponseDetails = async (response, env, compressionOptions) => {
 
   const uncompressedBytes = buffer.byteLength
   const compressedBytes = contentLength ? parseInt(contentLength, 10) : 0
+
+  let resourceType
+
+  if (contentType?.includes('text/html')) {
+    resourceType = 'document'
+  } else if (contentType?.includes('javascript')) {
+    resourceType = 'script'
+  } else if (contentType?.includes('video')) {
+    resourceType = 'video'
+  } else if (contentType?.includes('image')) {
+    resourceType = 'image'
+  } else if (contentType?.includes('css')) {
+    resourceType = 'css'
+  } else if (contentType?.includes('font')) {
+    resourceType = 'font'
+  } else {
+    resourceType = 'other'
+  }
+
   const bytes = getBytes({
     compressedBytes,
     uncompressedBytes,
     encoding: contentEncoding,
     compressionOptions,
+    resourceType,
   })
-
-  let resourceType
-  console.log('contentType: ', contentType)
-  {
-    if (contentType?.includes('text/html')) {
-      resourceType = 'document'
-    } else if (contentType?.includes('javascript')) {
-      resourceType = 'script'
-    } else if (contentType?.includes('video')) {
-      resourceType = 'video'
-    } else if (contentType?.includes('image')) {
-      resourceType = 'image'
-    } else if (contentType?.includes('css')) {
-      resourceType = 'css'
-    } else if (contentType?.includes('font')) {
-      resourceType = 'font'
-    } else {
-      resourceType = 'other'
-    }
-  }
 
   return {
     url,
@@ -1474,10 +1534,6 @@ const getNetworkTraffic = async (key, url, options) => {
     const { groupedByType, groupedByTypeBytes, totalUncachedBytes } =
       processResponses(records)
 
-    console.log('key: ', key)
-    console.log('records count: ', records.length)
-    console.log('tab count: ', tabRecords.length)
-
     const report = output({
       url,
       bytes,
@@ -1543,8 +1599,6 @@ const handleRequest = async (details) => {
 
       const { bytes, count, greenHosting, mgCO2, emissions, data } =
         await getNetworkTraffic(key, initiator, options)
-
-      console.log('Data ', data)
 
       sendMessageToSidePanel({
         url: activeTab.url,
