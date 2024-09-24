@@ -18,10 +18,13 @@ document.addEventListener('DOMContentLoaded', () => {
   let counts = Object.fromEntries(
     Object.keys(elements.sections).map((key) => [key, 0])
   )
+  let typeBytes = Object.fromEntries(
+    Object.keys(elements.sections).map((key) => [key, 0])
+  )
 
   const show = (id, value) => {
     if (id === 'data') return
-    const displayValue = id === 'bytes' ? value / 1000 : value
+    const displayValue = id === 'bytes' ? (value / 1000).toFixed(2) : value
     const element = document.getElementById(id)
     if (element) element.textContent = displayValue
   }
@@ -41,6 +44,9 @@ document.addEventListener('DOMContentLoaded', () => {
     counts = Object.fromEntries(
       Object.keys(elements.sections).map((key) => [key, 0])
     )
+    typeBytes = Object.fromEntries(
+      Object.keys(elements.sections).map((key) => [key, 0])
+    )
   }
 
   const updateSection = (type, request) => {
@@ -48,7 +54,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!section) return
 
     const details = section.querySelector('details')
-    const counter = section.querySelector('div')
+    const counter = section.querySelectorAll('div')[0]
+    const bytes = section.querySelectorAll('div')[1]
     const dl = section.querySelector('dl') || document.createElement('dl')
 
     const dt = document.createElement('dt')
@@ -64,6 +71,8 @@ document.addEventListener('DOMContentLoaded', () => {
     details.append(dl)
     counts[type]++
     counter.textContent = `count: ${counts[type]}`
+    typeBytes[type] = typeBytes[type] + request.bytes
+    bytes.textContent = `kilobytes: ${(typeBytes[type] / 1000).toFixed(2)}`
   }
 
   chrome.runtime.onMessage.addListener((message) => {
