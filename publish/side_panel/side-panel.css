@@ -1,11 +1,17 @@
+:root {
+  --fg-colour: black;
+  --accent-colour: orange;
+  --d: 1rem;
+}
+
 body {
   height: 100vh;
-  padding: 2rem;
+  padding: calc(var(--d) * 2);
 }
 
 h2 {
   font-size: 1.1rem;
-  margin: 2rem 0 1rem;
+  margin: calc(var(--d) * 2) 0 var(--d);
 
   &#requests-by-group {
     margin-bottom: 0;
@@ -13,20 +19,20 @@ h2 {
 }
 
 h3 {
-  padding-bottom: 0.25rem;
-  border-bottom: 1px solid black;
+  padding-bottom: calc(var(--d) * 0.25);
+  border-bottom: 1px solid var(--fg-colour);
   display: inline-block;
   font-weight: 600;
 }
 
 button {
-  padding: 1rem;
+  padding: var(--d);
   border-radius: 4px;
   font-size: 1.1rem;
 
   &#notification {
-    color: black;
-    background-color: orange;
+    color: var(--fg-colour);
+    background-color: var(--accent-colour);
   }
 }
 
@@ -40,7 +46,7 @@ section dt::before {
 }
 
 dd {
-  margin: 1rem 0;
+  margin: var(--d) 0;
 }
 
 section {
@@ -53,13 +59,13 @@ section {
 }
 
 footer {
-  padding: 2rem 0;
+  padding: calc(var(--d) * 2) 0;
 }
 
 a {
-  color: black;
-  border-bottom: 1px solid black;
-  padding-bottom: 0.125rem;
+  color: var(--fg-colour);
+  border-bottom: 1px solid var(--fg-colour);
+  padding-bottom: calc(var(--d) * 0.25);
   text-decoration: none;
 }
 
