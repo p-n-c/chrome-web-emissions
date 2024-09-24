@@ -51,8 +51,13 @@ dd {
 
 section {
   dd {
-    &::before {
+    & div:first-child::before {
       content: 'bytes: ';
+      font-weight: bold;
+    }
+
+    & div:last-child::before {
+      content: 'uncompressed bytes: ';
       font-weight: bold;
     }
   }

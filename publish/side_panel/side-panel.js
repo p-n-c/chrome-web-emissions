@@ -1,108 +1,104 @@
 /* eslint-disable no-undef */
-
 document.addEventListener('DOMContentLoaded', () => {
+  const elements = {
+    notification: document.getElementById('notification'),
+    sections: {
+      document: document.getElementById('document'),
+      script: document.getElementById('script'),
+      css: document.getElementById('css'),
+      image: document.getElementById('image'),
+      video: document.getElementById('video'),
+      font: document.getElementById('font'),
+      other: document.getElementById('other'),
+    },
+  }
+
+  let requests = new Set()
+  let currentKey = ''
+  let counts = Object.fromEntries(
+    Object.keys(elements.sections).map((key) => [key, 0])
+  )
+
   const show = (id, value) => {
     if (id === 'data') return
     const displayValue = id === 'bytes' ? value / 1000 : value
     const element = document.getElementById(id)
-    if (element) element.innerText = displayValue
-  }
-
-  let requests = []
-  let key = ''
-  let count = {
-    document: 0,
-    script: 0,
-    css: 0,
-    image: 0,
-    video: 0,
-    font: 0,
-    other: 0,
+    if (element) element.textContent = displayValue
   }
 
   const clearSection = (selector) => {
     const element = document.querySelector(selector)
     if (element) element.innerHTML = ''
-    else console.log(selector, ' does not have corresponding element')
+    else console.warn(`${selector} does not have a corresponding element`)
   }
 
   const reset = () => {
-    clearSection('#document > dl')
-    clearSection('#script > dl')
-    clearSection('#css > dl')
-    clearSection('#image > dl')
-    clearSection('#video > dl')
-    clearSection('#font > dl')
-    clearSection('#other > dl')
-
-    requests = []
-    key = ''
-    count = {
-      document: 0,
-      script: 0,
-      css: 0,
-      image: 0,
-      video: 0,
-      font: 0,
-      other: 0,
-    }
+    Object.keys(elements.sections).forEach((section) => {
+      clearSection(`#${section} dl`)
+    })
+    requests.clear()
+    currentKey = ''
+    counts = Object.fromEntries(
+      Object.keys(elements.sections).map((key) => [key, 0])
+    )
   }
 
-  const notification = document.getElementById('notification')
+  const updateSection = (type, request) => {
+    const section = elements.sections[type]
+    if (!section) return
+
+    const details = section.querySelector('details')
+    const counter = section.querySelector('div')
+    const dl = section.querySelector('dl') || document.createElement('dl')
+
+    const dt = document.createElement('dt')
+    const dd = document.createElement('dd')
+    const dd_div1 = document.createElement('div')
+    const dd_div2 = document.createElement('div')
+    dt.textContent = request.url
+    dd_div1.textContent = request.bytes
+    dd_div2.textContent = request.uncompressedBytes
+    dd.append(dd_div1, dd_div2)
+    dl.append(dt, dd)
+
+    details.append(dl)
+    counts[type]++
+    counter.textContent = `count: ${counts[type]}`
+  }
 
   chrome.runtime.onMessage.addListener((message) => {
     if (message.action === 'url-changed' || message.action === 'url-reloaded') {
-      console.log(`URL changed to: ${message?.url}`)
-      console.log('key was: ', key)
+      console.log(message.action)
       reset()
     }
+
     if (message.action === 'network-traffic') {
-      for (const [key, value] of Object.entries(message.data)) {
-        show(key, value)
-      }
+      Object.entries(message.data).forEach(([key, value]) => show(key, value))
 
       document.querySelector('.hidden')?.classList.remove('hidden')
 
       try {
-        for (const [type, value] of Object.entries(
-          message.data.data.groupedByType
-        )) {
-          const section = document.getElementById(type)
-          const details = section.querySelector('details')
-          const counter = section.querySelector('div')
-          const template = document.getElementById('dl-template')
-          const clone = template.content.cloneNode(true)
-          const dl = section.querySelector('dl')
+        Object.entries(message.data.data.groupedByType).forEach(
+          ([type, value]) => {
+            if (!value?.length) return
 
-          if (!value?.length) return
-
-          value.forEach((request) => {
-            if (key !== request.key) {
-              key = request.key
-            }
-            if (!requests.includes(request?.url)) {
-              const dt = clone.querySelector('dt')
-              const dd = clone.querySelector('dd')
-              if (dt) dt.innerText = request.url
-              if (dd) dd.innerText = request.bytes
-              dl.append(clone)
-
-              requests.push(request.url)
-              console.log('requests count: ', requests.length)
-              details.append(dl)
-
-              count[type] = count[type] + 1
-              counter.innerText = `count: ${count[type]}`
-              console.log(type)
-              console.log(count)
-              console.log(value)
-            }
-          })
-        }
-      } catch (e) {
-        console.log(e)
+            value.forEach((request) => {
+              if (currentKey !== request.key) {
+                currentKey = request.key
+              }
+              if (!requests.has(request?.url)) {
+                updateSection(type, request)
+                requests.add(request.url)
+                // console.log('Total requests: ', requests.size)
+              }
+            })
+          }
+        )
+      } catch (error) {
+        console.error('Error processing network traffic:', error)
       }
-      notification.style.display = 'none'
+
+      elements.notification.style.display = 'none'
     }
   })
 })
