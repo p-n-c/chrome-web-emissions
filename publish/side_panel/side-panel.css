@@ -5,6 +5,18 @@ body {
 
 h2 {
   font-size: 1.1rem;
+  margin: 2rem 0 1rem;
+
+  &#requests-by-group {
+    margin-bottom: 0;
+  }
+}
+
+h3 {
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid black;
+  display: inline-block;
+  font-weight: 600;
 }
 
 button {
@@ -22,12 +34,26 @@ dt {
   font-weight: bold;
 }
 
+section dt::before {
+  content: 'url: ';
+  font-weight: bold;
+}
+
 dd {
   margin: 1rem 0;
 }
 
+section {
+  dd {
+    &::before {
+      content: 'bytes: ';
+      font-weight: bold;
+    }
+  }
+}
+
 footer {
-  margin: 2rem 0;
+  padding: 2rem 0;
 }
 
 a {

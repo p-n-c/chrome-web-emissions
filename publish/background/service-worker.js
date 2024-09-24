@@ -152,7 +152,7 @@ const compressUncompressedBytes = ({ encoding, bytes, compressionOptions }) => {
 }
 
 const getResponseDetails = async (response, env, compressionOptions) => {
-  const acceptedStatuses = [200, 304]
+  const acceptedStatuses = [200, 204, 302, 303, 304]
   const status = response.status
 
   if (!response || !acceptedStatuses.includes(status)) {
@@ -180,14 +180,20 @@ const getResponseDetails = async (response, env, compressionOptions) => {
   })
 
   let resourceType
-
+  console.log('contentType: ', contentType)
   {
-    if (contentType.includes('text/html')) {
+    if (contentType?.includes('text/html')) {
       resourceType = 'document'
-    } else if (contentType.includes('application/javascript')) {
+    } else if (contentType?.includes('javascript')) {
       resourceType = 'script'
-    } else if (contentType.includes('image/')) {
+    } else if (contentType?.includes('video')) {
+      resourceType = 'video'
+    } else if (contentType?.includes('image')) {
       resourceType = 'image'
+    } else if (contentType?.includes('css')) {
+      resourceType = 'css'
+    } else if (contentType?.includes('font')) {
+      resourceType = 'font'
     } else {
       resourceType = 'other'
     }
@@ -237,21 +243,10 @@ const getCurrentTab = async () => {
   }
 }
 
-const saveNetworkTraffic = async (responseDetails) => {
+const saveNetworkTraffic = async (record) => {
   const db = await openDatabase()
   const tx = db.transaction(STORE, 'readwrite')
   const emissions = tx.objectStore(STORE)
-
-  const record = {
-    key: responseDetails.key,
-    url: responseDetails.url,
-    bytes: responseDetails.bytes,
-    uncompressedBytes: responseDetails.uncompressedBytes,
-    contentType: responseDetails.contentType,
-    resourceType: responseDetails.resourceType,
-  }
-
-  console.log('record:', record)
 
   await emissions.add(record)
 
@@ -1460,16 +1455,6 @@ const clearNetworkTraffic = async () => {
   }
 }
 
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  try {
-    console.clear()
-    console.log('Network traffic cleared')
-    clearNetworkTraffic()
-  } catch (e) {
-    console.log(e)
-  }
-})
-
 const getNetworkTraffic = async (key, url, options) => {
   try {
     const domain = getDomainFromURL(url)
@@ -1489,10 +1474,15 @@ const getNetworkTraffic = async (key, url, options) => {
     const { groupedByType, groupedByTypeBytes, totalUncachedBytes } =
       processResponses(records)
 
+    console.log('key: ', key)
+    console.log('records count: ', records.length)
+    console.log('tab count: ', tabRecords.length)
+
     const report = output({
       url,
       bytes,
       greenHosting,
+      count: tabRecords.length,
       responses: tabRecords,
       emissions,
       groupedByType,
@@ -1527,8 +1517,8 @@ function sendMessageToSidePanel(data) {
 }
 
 const handleRequest = async (details) => {
+  // Ensure it's a page request and not an extension request
   if (details.tabId !== -1) {
-    // Ensure it's a page request and not an extension request
     const { url, initiator } = details
 
     const response = await fetch(url)
@@ -1573,3 +1563,21 @@ chrome.webRequest.onCompleted.addListener(
   handleRequest,
   { urls: ['<all_urls>'] } // This filter controls which URLs you listen to
 )
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+  if (changeInfo.url) {
+    chrome.runtime.sendMessage({
+      action: 'url-changed',
+      url: changeInfo.url,
+      tabId,
+    })
+    clearNetworkTraffic()
+  } else if (changeInfo?.status === 'loading') {
+    chrome.runtime.sendMessage({
+      action: 'url-reloaded',
+      url: changeInfo.url,
+      tabId,
+    })
+    clearNetworkTraffic()
+  }
+})

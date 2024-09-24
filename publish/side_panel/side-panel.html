@@ -15,7 +15,7 @@
         <dd id="url">&nbsp;</dd>
         <dt>Requested data in kilobytes</dt>
         <dd id="bytes">&nbsp;</dd>
-        <dt>Number of requests</dt>
+        <dt>Number of GET requests</dt>
         <dd id="count">&nbsp;</dd>
         <dt>Green hosted</dt>
         <dd id="greenHosting">&nbsp;</dd>
@@ -23,11 +23,70 @@
         <dd id="mgCO2">&nbsp;</dd>
       </dl>
 
-      <h2 class="hidden">Requests grouped by type</h2>
-      <section id="document" class="hidden">document</section>
-      <section id="script" class="hidden">script</section>
-      <section id="image" class="hidden">image</section>
-      <section id="other" class="hidden">other</section>
+      <h2 id="requests-by-group" class="hidden">Requests</h2>
+      <section id="document" class="hidden">
+        <details>
+          <summary>
+            <h3>document</h3>
+          </summary>
+          <div>count: 0</div>
+          <dl></dl>
+        </details>
+      </section>
+      <section id="script" class="hidden">
+        <details>
+          <summary>
+            <h3>script</h3>
+          </summary>
+          <div>count: 0</div>
+          <dl></dl>
+        </details>
+      </section>
+      <section id="css" class="hidden">
+        <details>
+          <summary>
+            <h3>css</h3>
+          </summary>
+          <div>count: 0</div>
+          <dl></dl>
+        </details>
+      </section>
+      <section id="image" class="hidden">
+        <details>
+          <summary>
+            <h3>image</h3>
+          </summary>
+          <div>count: 0</div>
+          <dl></dl>
+        </details>
+      </section>
+      <section id="video" class="hidden">
+        <details>
+          <summary>
+            <h3>video</h3>
+          </summary>
+          <div>count: 0</div>
+          <dl></dl>
+        </details>
+      </section>
+      <section id="font" class="hidden">
+        <details>
+          <summary>
+            <h3>font</h3>
+          </summary>
+          <div>count: 0</div>
+          <dl></dl>
+        </details>
+      </section>
+      <section id="other" class="hidden">
+        <details>
+          <summary>
+            <h3>other</h3>
+          </summary>
+          <div>count: 0</div>
+          <dl></dl>
+        </details>
+      </section>
     </main>
     <aside>
       <button id="notification">
