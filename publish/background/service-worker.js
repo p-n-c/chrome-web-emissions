@@ -1560,6 +1560,7 @@ chrome.action.onClicked.addListener((tab) => {
 
 // Update network traffic
 function sendMessageToSidePanel(data) {
+  console.log('sendMessageToSidePanel: ', data)
   chrome.sidePanel.getOptions({}, (options) => {
     if (options.enabled) {
       chrome.runtime.sendMessage({
@@ -1588,6 +1589,7 @@ const handleRequest = async (details) => {
       const key = `${details.tabId}:${activeTab.url}`
       responseDetails.key = key
 
+      // Save request details to the service worker application IndexedDB database
       await saveNetworkTraffic(responseDetails)
 
       const options = {
@@ -1597,6 +1599,7 @@ const handleRequest = async (details) => {
         },
       }
 
+      // Retrieve processed request data
       const { bytes, count, greenHosting, mgCO2, emissions, data } =
         await getNetworkTraffic(key, initiator, options)
 
@@ -1615,7 +1618,7 @@ const handleRequest = async (details) => {
 
 chrome.webRequest.onCompleted.addListener(
   handleRequest,
-  { urls: ['<all_urls>'] } // This filter controls which URLs you listen to
+  { urls: ['<all_urls>'] } // Listen for all URLs
 )
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
@@ -1625,6 +1628,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
       url: changeInfo.url,
       tabId,
     })
+    // Clear the service worker application IndexedDB data
     clearNetworkTraffic()
   } else if (changeInfo?.status === 'loading') {
     chrome.runtime.sendMessage({
@@ -1632,6 +1636,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
       url: changeInfo.url,
       tabId,
     })
+    // Clear the service worker application IndexedDB data
     clearNetworkTraffic()
   }
 })
