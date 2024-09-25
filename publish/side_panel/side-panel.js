@@ -38,6 +38,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const resetPanelDisplay = () => {
     Object.keys(elements.sections).forEach((section) => {
       clearSection(`#${section} dl`)
+      const aggregates = document.querySelectorAll(`#${section} div`)
+      aggregates[0].textContent = 'count: 0'
+      aggregates[1].textContent = 'kilobytes: 0'
     })
     requests.clear()
     currentKey = ''
