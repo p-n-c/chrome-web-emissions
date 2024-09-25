@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     Object.keys(elements.sections).map((key) => [key, 0])
   )
 
-  const show = (id, value) => {
+  const showSummaryData = (id, value) => {
     if (id === 'data') return
     const displayValue = id === 'bytes' ? (value / 1000).toFixed(2) : value
     const element = document.getElementById(id)
@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
     else console.warn(`${selector} does not have a corresponding element`)
   }
 
-  const reset = () => {
+  const resetPanelDisplay = () => {
     Object.keys(elements.sections).forEach((section) => {
       clearSection(`#${section} dl`)
     })
@@ -62,13 +62,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const dd = document.createElement('dd')
     const dd_div1 = document.createElement('div')
     const dd_div2 = document.createElement('div')
+
+    // Add request url
     dt.textContent = request.url
+
+    // Add request bytes
     dd_div1.textContent = request.bytes
     dd_div2.textContent = request.uncompressedBytes
+
     dd.append(dd_div1, dd_div2)
     dl.append(dt, dd)
 
     details.append(dl)
+
+    // Update summary data (count and kilobytes)
     counts[type]++
     counter.textContent = `count: ${counts[type]}`
     typeBytes[type] = typeBytes[type] + request.bytes
@@ -77,13 +84,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   chrome.runtime.onMessage.addListener((message) => {
     if (message.action === 'url-changed' || message.action === 'url-reloaded') {
-      console.log(message.action)
-      reset()
+      resetPanelDisplay()
     }
 
     if (message.action === 'network-traffic') {
-      Object.entries(message.data).forEach(([key, value]) => show(key, value))
+      // Show summary data
+      Object.entries(message.data).forEach(([key, value]) =>
+        showSummaryData(key, value)
+      )
 
+      // Show request details categories
       document.querySelector('.hidden')?.classList.remove('hidden')
 
       try {
@@ -98,7 +108,6 @@ document.addEventListener('DOMContentLoaded', () => {
               if (!requests.has(request?.url)) {
                 updateSection(type, request)
                 requests.add(request.url)
-                // console.log('Total requests: ', requests.size)
               }
             })
           }
@@ -107,6 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('Error processing network traffic:', error)
       }
 
+      // Hide visitor notification to reload the page
       elements.notification.style.display = 'none'
     }
   })
