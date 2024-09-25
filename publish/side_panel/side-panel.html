@@ -3,31 +3,121 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Page emissions</title>
+    <title>Emissions tracker by People & Code</title>
     <link rel="stylesheet" href="side-panel.css" />
   </head>
   <body>
-    <h1>Emissions report</h1>
+    <header>
+      <h1>Emissions tracker</h1>
+    </header>
+    <main>
+      <h2>Summary</h2>
+      <dl>
+        <dt>Page</dt>
+        <dd id="url">-</dd>
+        <dt>Requested data in kilobytes</dt>
+        <dd id="bytes">-</dd>
+        <dt>Number of GET requests</dt>
+        <dd id="count">-</dd>
+        <dt>Green hosted</dt>
+        <dd id="greenHosting">-</dd>
+        <dt>Emissions in mgCO2</dt>
+        <dd id="mgCO2">-</dd>
+      </dl>
+
+      <h2 id="requests-by-group" class="hidden">Requests</h2>
+      <section id="document" class="hidden">
+        <details>
+          <summary>
+            <h3>document</h3>
+          </summary>
+          <div>count: 0</div>
+          <div>bytes: 0</div>
+          <dl></dl>
+        </details>
+      </section>
+      <section id="script" class="hidden">
+        <details>
+          <summary>
+            <h3>script</h3>
+          </summary>
+          <div>count: 0</div>
+          <div>bytes: 0</div>
+          <dl></dl>
+        </details>
+      </section>
+      <section id="css" class="hidden">
+        <details>
+          <summary>
+            <h3>css</h3>
+          </summary>
+          <div>count: 0</div>
+          <div>bytes: 0</div>
+          <dl></dl>
+        </details>
+      </section>
+      <section id="image" class="hidden">
+        <details>
+          <summary>
+            <h3>image</h3>
+          </summary>
+          <div>count: 0</div>
+          <div>bytes: 0</div>
+          <dl></dl>
+        </details>
+      </section>
+      <section id="video" class="hidden">
+        <details>
+          <summary>
+            <h3>video</h3>
+          </summary>
+          <div>count: 0</div>
+          <div>bytes: 0</div>
+          <dl></dl>
+        </details>
+      </section>
+      <section id="font" class="hidden">
+        <details>
+          <summary>
+            <h3>font</h3>
+          </summary>
+          <div>count: 0</div>
+          <div>bytes: 0</div>
+          <dl></dl>
+        </details>
+      </section>
+      <section id="other" class="hidden">
+        <details>
+          <summary>
+            <h3>other</h3>
+          </summary>
+          <div>count: 0</div>
+          <div>bytes: 0</div>
+          <dl></dl>
+        </details>
+      </section>
+    </main>
+    <aside>
+      <button id="notification">
+        Please reload the page to capture website emissions.
+      </button>
+    </aside>
+    <footer>
+      Emissions tracker by
+      <a href="https://p-n-c.github.io/website/">People & Code</a>
+    </footer>
   </body>
-  <table>
-    <caption>
-      PAGE SUMMARY
-    </caption>
-    <tr>
-      <th>url</th>
-      <th>kilobytes</th>
-      <th>count</th>
-      <th>greenHosting</th>
-      <th>mgCO2</th>
-    </tr>
-    <tr>
-      <td id="url"></td>
-      <td id="bytes"></td>
-      <td id="count"></td>
-      <td id="greenHosting"></td>
-      <td id="mgCO2"></td>
-    </tr>
-  </table>
-  <p id="processing">Processing page…</p>
+
+  <template id="dl-template"
+    ><dt></dt>
+    <dd></dd
+  ></template>
+
+  <template id="ul-template"
+    ><dt></dt>
+    <dd></dd
+  ></template>
+
+  <p id="progress"></p>
   <script type="module" src="side-panel.js"></script>
 </html>

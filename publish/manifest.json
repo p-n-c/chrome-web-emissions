@@ -1,29 +1,21 @@
 {
   "manifest_version": 3,
-  "name": "Chrome Emissions Extension",
+  "name": "Emissions tracker",
   "version": "0.0.0.1",
+  "description": "Tracking CO2 emissions associated with the current page",
   "permissions": [
     "activeTab",
     "sidePanel",
-    "webRequest",
-    "webNavigation",
     "scripting",
-    "tabs"
+    "tabs",
+    "webRequest",
+    "storage"
   ],
   "host_permissions": ["<all_urls>"],
   "background": {
     "service_worker": "background/service-worker.js",
     "type": "module"
   },
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": [
-        "content_scripts/emissions.js",
-        "content_scripts/emissions-script.js"
-      ]
-    }
-  ],
   "action": {},
   "icons": {
     "16": "icons/icon16.png",

@@ -1,153 +1,109 @@
 /* eslint-disable no-undef */
 
+import {
+  getResponseDetails,
+  saveNetworkTraffic,
+  getNetworkTraffic,
+  clearNetworkTraffic,
+} from './emissions.js'
+
+const getCurrentTab = async () => {
+  let queryOptions = { active: true, lastFocusedWindow: true }
+  let [tab] = await chrome.tabs.query(queryOptions)
+
+  if (tab && tab.active) {
+    return tab
+  } else {
+    return null
+  }
+}
+
 // Open the panel when the visitor clicks on the extension icon
 chrome.action.onClicked.addListener((tab) => {
   chrome.sidePanel.open({ tabId: tab.id })
   chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true })
-  console.log('tab: ', tab)
 })
 
-const emissions = () => {
-  console.log('Background script initialized')
-  let urlsArray = []
-  let listeners = {}
-  let pageUrl = ''
-
-  function processUrls(tabId) {
-    console.log('Processing URLs for tab', tabId)
-    if (urlsArray.length > 0) {
-      console.log('URLs to process:', urlsArray)
-
-      // Capture the emissions
-      chrome.scripting.executeScript({
-        target: { tabId: tabId },
-        function: captureEmissions,
-        args: [urlsArray],
+// Update network traffic
+function sendMessageToSidePanel(data) {
+  console.log('sendMessageToSidePanel: ', data)
+  chrome.sidePanel.getOptions({}, (options) => {
+    if (options.enabled) {
+      chrome.runtime.sendMessage({
+        action: 'network-traffic',
+        data,
       })
-
-      // remove currents urls
-      urlsArray = []
-
-      // Fetch the emissions
-      console.log('Fetch the emissions')
-      console.log('tabId: ', tabId)
-      console.log('pageUrl: ', pageUrl)
-
-      setTimeout(() => {
-        chrome.scripting.executeScript(
-          {
-            target: { tabId },
-            function: showEmissions,
-            args: [pageUrl],
-          },
-          (response) => {
-            if (chrome.runtime.lastError) {
-              console.error(chrome.runtime.lastError)
-            } else if (response && response[0]) {
-              console.log('Show emissions data')
-              console.log(response[0])
-
-              chrome.runtime.sendMessage({
-                action: 'networkTraffic',
-                result: { ...response[0].result, url: pageUrl },
-              })
-            }
-          }
-        )
-      }, 2000)
     } else {
-      console.log('No URLs to process for tab', tabId)
+      console.log('Side panel is not enabled')
     }
-  }
+  })
+}
 
-  function setupListenerForTab(details) {
-    const { tabId, url } = details
-    console.log('Setting up listener for tab', tabId)
-    if (!listeners[tabId]) {
-      listeners[tabId] = (details) => {
-        console.log('Captured URL:', details.url)
-        console.log('details: ', details)
-        console.log('tabId: ', tabId)
-        urlsArray.push(details.url)
-        pageUrl = url
+// Handle network requests (triggered by page load)
+const handleRequest = async (details) => {
+  // Ensure it's a page request and not an extension request
+  if (details.tabId !== -1) {
+    const { url, initiator } = details
+
+    const response = await fetch(url)
+    const clonedResponse = response.clone()
+    const responseDetails = await getResponseDetails(clonedResponse, 'browser')
+    const activeTab = await getCurrentTab()
+
+    const isActiveTab = activeTab?.id === details.tabId
+
+    if (isActiveTab && responseDetails) {
+      const key = `${details.tabId}:${activeTab.url}`
+      responseDetails.key = key
+
+      // Save request details to the service worker application IndexedDB database
+      await saveNetworkTraffic(responseDetails)
+
+      const options = {
+        hostingOptions: {
+          verbose: true,
+          forceGreen: true,
+        },
       }
-      chrome.webRequest.onCompleted.addListener(listeners[tabId], {
-        urls: ['<all_urls>'],
+
+      // Retrieve processed request data
+      const { bytes, count, greenHosting, mgCO2, emissions, data } =
+        await getNetworkTraffic(key, initiator, options)
+
+      sendMessageToSidePanel({
+        url: activeTab.url,
+        bytes,
+        count,
+        greenHosting,
+        mgCO2,
+        emissions,
+        data,
       })
-      console.log('Listener set up for tab', tabId)
     }
   }
-
-  function removeListenerForTab(tabId) {
-    console.log('Removing listener for tab', tabId)
-    if (listeners[tabId]) {
-      chrome.webRequest.onCompleted.removeListener(listeners[tabId])
-      delete listeners[tabId]
-      console.log('Listener removed for tab', tabId)
-    }
-  }
-
-  chrome.webNavigation.onBeforeNavigate.addListener((details) => {
-    console.log('onBeforeNavigate fired', details)
-    if (details.frameId === 0) {
-      console.log('Setting up listener for tab', details.tabId)
-      setupListenerForTab(details)
-    }
-  })
-
-  chrome.webNavigation.onCompleted.addListener((details) => {
-    console.log('onCompleted fired', details)
-    // Main frame only
-    if (details.frameId === 0) {
-      console.log('Processing URLs for tab', details.tabId)
-      processUrls(details.tabId)
-      removeListenerForTab(details.tabId)
-    }
-  })
-
-  chrome.tabs.onRemoved.addListener((tabId) => {
-    processUrls(tabId)
-    removeListenerForTab(tabId)
-  })
 }
 
-;(function () {
-  emissions()
-})()
+chrome.webRequest.onCompleted.addListener(
+  handleRequest,
+  { urls: ['<all_urls>'] } // Listen for all URLs
+)
 
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.status === 'complete' && tab.url.startsWith('http')) {
-    console.clear()
-    console.log('Page changed!')
-    console.log('url:', tab.url)
+chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+  if (changeInfo.url) {
     chrome.runtime.sendMessage({
-      action: 'PageChange',
-      url: tab.url,
+      action: 'url-changed',
+      url: changeInfo.url,
+      tabId,
     })
+    // Clear the service worker application IndexedDB data
+    clearNetworkTraffic()
+  } else if (changeInfo?.status === 'loading') {
+    chrome.runtime.sendMessage({
+      action: 'url-reloaded',
+      url: changeInfo.url,
+      tabId,
+    })
+    // Clear the service worker application IndexedDB data
+    clearNetworkTraffic()
   }
 })
-
-chrome.runtime.onConnect.addListener(async (port) => {
-  console.log('Connected to panel')
-
-  const [tab] = await chrome.tabs.query({
-    active: true,
-    lastFocusedWindow: true,
-  })
-
-  // Send the url of the current tab to the panel via the port
-  if (port.name === 'panel-connection') {
-    port.postMessage({
-      from: 'service-worker',
-      url: tab.url,
-    })
-  }
-})
-
-function captureEmissions(urls) {
-  setMyPageEmissions(urls)
-}
-
-function showEmissions(pageUrl) {
-  return getMyPageEmissions(pageUrl)
-}

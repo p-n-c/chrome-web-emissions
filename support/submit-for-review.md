@@ -44,7 +44,7 @@ Justification: This permission enables us to add and remove listeners on individ
 
 Usage: Our scripts run only when you activate the extension on a specific page. They do not run in the background or on pages where you haven't initiated the extension.
 
-### webNavigation justification
+### webNavigation justification (TBC)
 
 Justification: This permission enables us to know when to start listening for requests (chrome.webNavigation.onBeforeNavigate) and when to stop and remove listeners (chrome.webNavigation.onCompleted) in the current tab.
 
