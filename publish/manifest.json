@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Sustainability report",
+  "name": "Emissions tracker",
   "version": "0.0.0.1",
-  "description": "CO2 emissions for current page",
+  "description": "Tracking CO2 emissions associated with the current page",
   "permissions": [
     "activeTab",
     "sidePanel",
