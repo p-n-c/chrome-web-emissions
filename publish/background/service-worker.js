@@ -45,40 +45,51 @@ const handleRequest = async (details) => {
   if (details.tabId !== -1) {
     const { url, initiator } = details
 
+    // Exclude, for example, wss
+    const permittedSchema = ['http:', 'https:']
+
     const response = await fetch(url)
-    const clonedResponse = response.clone()
-    const responseDetails = await getResponseDetails(clonedResponse, 'browser')
-    const activeTab = await getCurrentTab()
+    const urlObject = new URL(response.url)
+    const scheme = urlObject.protocol // This will return 'https:' or 'http:'
 
-    const isActiveTab = activeTab?.id === details.tabId
+    if (permittedSchema.includes(scheme)) {
+      const clonedResponse = response.clone()
+      const responseDetails = await getResponseDetails(
+        clonedResponse,
+        'browser'
+      )
+      const activeTab = await getCurrentTab()
 
-    if (isActiveTab && responseDetails) {
-      const key = `${details.tabId}:${activeTab.url}`
-      responseDetails.key = key
+      const isActiveTab = activeTab?.id === details.tabId
 
-      // Save request details to the service worker application IndexedDB database
-      await saveNetworkTraffic(responseDetails)
+      if (isActiveTab && responseDetails) {
+        const key = `${details.tabId}:${activeTab.url}`
+        responseDetails.key = key
 
-      const options = {
-        hostingOptions: {
-          verbose: true,
-          forceGreen: true,
-        },
+        // Save request details to the service worker application IndexedDB database
+        await saveNetworkTraffic(responseDetails)
+
+        const options = {
+          hostingOptions: {
+            verbose: true,
+            forceGreen: true,
+          },
+        }
+
+        // Retrieve processed request data
+        const { bytes, count, greenHosting, mgCO2, emissions, data } =
+          await getNetworkTraffic(key, initiator, options)
+
+        sendMessageToSidePanel({
+          url: activeTab.url,
+          bytes,
+          count,
+          greenHosting,
+          mgCO2,
+          emissions,
+          data,
+        })
       }
-
-      // Retrieve processed request data
-      const { bytes, count, greenHosting, mgCO2, emissions, data } =
-        await getNetworkTraffic(key, initiator, options)
-
-      sendMessageToSidePanel({
-        url: activeTab.url,
-        bytes,
-        count,
-        greenHosting,
-        mgCO2,
-        emissions,
-        data,
-      })
     }
   }
 }
