@@ -30,74 +30,10 @@ const getBytes = ({
   )
 }
 
-const compressUncompressedBytes = ({
-  encoding,
-  bytes,
-  compressionOptions,
-  resourceType,
-}) => {
+const compressUncompressedBytes = ({ encoding, bytes, resourceType }) => {
   return encoding !== 'n/a'
     ? getCompressedSize(bytes, resourceType, encoding)
     : 0
-}
-
-export const getResponseDetails = async (response, env, compressionOptions) => {
-  const acceptedStatuses = [200, 204, 302, 303, 304]
-  const status = response.status
-
-  if (!response || !acceptedStatuses.includes(status)) {
-    return null
-  }
-
-  const isBrowser = env === 'browser'
-
-  const getHeader = (header) => response.headers.get(header)
-  const getBuffer = async () => response.arrayBuffer()
-
-  const url = isBrowser ? response.url : response.url()
-  const contentLength = getHeader('Content-Length')
-  const contentType = getHeader('Content-Type')
-  const contentEncoding = getHeader('Content-Encoding') || 'n/a'
-  const buffer = await getBuffer()
-
-  const uncompressedBytes = buffer.byteLength
-  const compressedBytes = contentLength ? parseInt(contentLength, 10) : 0
-
-  let resourceType
-
-  if (contentType?.includes('text/html')) {
-    resourceType = 'document'
-  } else if (contentType?.includes('javascript')) {
-    resourceType = 'script'
-  } else if (contentType?.includes('video')) {
-    resourceType = 'video'
-  } else if (contentType?.includes('image')) {
-    resourceType = 'image'
-  } else if (contentType?.includes('css')) {
-    resourceType = 'css'
-  } else if (contentType?.includes('font')) {
-    resourceType = 'font'
-  } else {
-    resourceType = 'other'
-  }
-
-  const bytes = getBytes({
-    compressedBytes,
-    uncompressedBytes,
-    encoding: contentEncoding,
-    compressionOptions,
-    resourceType,
-  })
-
-  return {
-    url,
-    contentType,
-    compressedBytes,
-    uncompressedBytes,
-    bytes,
-    encoding: contentEncoding,
-    resourceType,
-  }
 }
 
 const openDatabase = async () => {
@@ -120,16 +56,6 @@ const openDatabase = async () => {
       reject(event.target.error)
     }
   })
-}
-
-export const saveNetworkTraffic = async (record) => {
-  const db = await openDatabase()
-  const tx = db.transaction(STORE, 'readwrite')
-  const emissions = tx.objectStore(STORE)
-
-  await emissions.add(record)
-
-  db.close()
 }
 
 const getRecords = (store) => {
@@ -231,22 +157,73 @@ const processResponses = (responses) => {
   }
 }
 
-export const clearNetworkTraffic = async () => {
+export const getResponseDetails = async (response, env, compressionOptions) => {
+  const acceptedStatuses = [200, 204, 302, 303, 304]
+  const status = response.status
+
+  if (!response || !acceptedStatuses.includes(status)) {
+    return null
+  }
+
+  const isBrowser = env === 'browser'
+
+  const getHeader = (header) => response.headers.get(header)
+  const getBuffer = async () => response.arrayBuffer()
+
+  const url = isBrowser ? response.url : response.url()
+  const contentLength = getHeader('Content-Length')
+  const contentType = getHeader('Content-Type')
+  const contentEncoding = getHeader('Content-Encoding') || 'n/a'
+  const buffer = await getBuffer()
+
+  const uncompressedBytes = buffer.byteLength
+  const compressedBytes = contentLength ? parseInt(contentLength, 10) : 0
+
+  let resourceType
+
+  if (contentType?.includes('text/html')) {
+    resourceType = 'document'
+  } else if (contentType?.includes('javascript')) {
+    resourceType = 'script'
+  } else if (contentType?.includes('video')) {
+    resourceType = 'video'
+  } else if (contentType?.includes('image')) {
+    resourceType = 'image'
+  } else if (contentType?.includes('css')) {
+    resourceType = 'css'
+  } else if (contentType?.includes('font')) {
+    resourceType = 'font'
+  } else {
+    resourceType = 'other'
+  }
+
+  const bytes = getBytes({
+    compressedBytes,
+    uncompressedBytes,
+    encoding: contentEncoding,
+    compressionOptions,
+    resourceType,
+  })
+
+  return {
+    url,
+    contentType,
+    compressedBytes,
+    uncompressedBytes,
+    bytes,
+    encoding: contentEncoding,
+    resourceType,
+  }
+}
+
+export const saveNetworkTraffic = async (record) => {
   const db = await openDatabase()
   const tx = db.transaction(STORE, 'readwrite')
-  const store = tx.objectStore(STORE)
+  const emissions = tx.objectStore(STORE)
 
-  store.clear().onsuccess = function () {
-    console.log(`Object store ${STORE} cleared.`)
-  }
+  await emissions.add(record)
 
-  tx.oncomplete = function () {
-    db.close()
-  }
-
-  tx.onerror = function (event) {
-    console.error('Transaction error:', event.target.error)
-  }
+  db.close()
 }
 
 export const getNetworkTraffic = async (key, url, options) => {
@@ -283,5 +260,23 @@ export const getNetworkTraffic = async (key, url, options) => {
     return report
   } catch (error) {
     throw new Error(`Failed to get network traffic: ${error.message}`)
+  }
+}
+
+export const clearNetworkTraffic = async () => {
+  const db = await openDatabase()
+  const tx = db.transaction(STORE, 'readwrite')
+  const store = tx.objectStore(STORE)
+
+  store.clear().onsuccess = function () {
+    console.log(`Object store ${STORE} cleared.`)
+  }
+
+  tx.oncomplete = function () {
+    db.close()
+  }
+
+  tx.onerror = function (event) {
+    console.error('Transaction error:', event.target.error)
   }
 }
