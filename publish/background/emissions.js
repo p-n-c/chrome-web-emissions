@@ -168,6 +168,108 @@ const estimateBrotliCompressedSize = (bytes, requestType) => {
   return null // This shouldn't happen if contentType is valid
 }
 
+const estimateGzipCompressedSize = (bytes, requestType) => {
+  // Define compression ratio matrix based on content type and file size for gzip
+  const compressionMatrix = {
+    document: [
+      { sizeThreshold: 50000, compressionRatio: 0.7, gzipLevel: 6 },
+      { sizeThreshold: 100000, compressionRatio: 0.5, gzipLevel: 7 },
+      { sizeThreshold: Infinity, compressionRatio: 0.3, gzipLevel: 9 },
+    ],
+    script: [
+      { sizeThreshold: 20000, compressionRatio: 0.75, gzipLevel: 5 },
+      { sizeThreshold: 100000, compressionRatio: 0.55, gzipLevel: 6 },
+      { sizeThreshold: Infinity, compressionRatio: 0.35, gzipLevel: 9 },
+    ],
+    css: [
+      { sizeThreshold: 10000, compressionRatio: 0.75, gzipLevel: 4 },
+      { sizeThreshold: 100000, compressionRatio: 0.55, gzipLevel: 6 },
+      { sizeThreshold: Infinity, compressionRatio: 0.35, gzipLevel: 8 },
+    ],
+    image: [
+      { sizeThreshold: Infinity, compressionRatio: 0.98, gzipLevel: 1 }, // Minimal compression for images
+    ],
+    other: [
+      { sizeThreshold: 50000, compressionRatio: 0.7, gzipLevel: 6 },
+      { sizeThreshold: 100000, compressionRatio: 0.5, gzipLevel: 7 },
+      { sizeThreshold: Infinity, compressionRatio: 0.3, gzipLevel: 9 },
+    ],
+  }
+
+  // No compression for video or fonts
+  if (requestType === 'video' || requestType === 'font') return bytes
+
+  // Check if request type exists in the matrix
+  if (!compressionMatrix[requestType]) {
+    throw new Error('Unsupported content type')
+  }
+
+  // Find appropriate compression ratio and level based on file size
+  for (const {
+    sizeThreshold,
+    compressionRatio,
+    gzipLevel,
+  } of compressionMatrix[requestType]) {
+    if (bytes <= sizeThreshold) {
+      const compressedBytes = bytes * compressionRatio
+      return { compressedBytes, gzipLevel }
+    }
+  }
+
+  return null // This shouldn't happen if contentType is valid
+}
+
+const estimateZstdCompressedSize = (bytes, requestType) => {
+  // Define compression ratio matrix based on content type and file size for zstd
+  const compressionMatrix = {
+    document: [
+      { sizeThreshold: 50000, compressionRatio: 0.65, zstdLevel: 5 },
+      { sizeThreshold: 100000, compressionRatio: 0.45, zstdLevel: 8 },
+      { sizeThreshold: Infinity, compressionRatio: 0.25, zstdLevel: 12 },
+    ],
+    script: [
+      { sizeThreshold: 20000, compressionRatio: 0.7, zstdLevel: 4 },
+      { sizeThreshold: 100000, compressionRatio: 0.5, zstdLevel: 7 },
+      { sizeThreshold: Infinity, compressionRatio: 0.3, zstdLevel: 9 },
+    ],
+    css: [
+      { sizeThreshold: 10000, compressionRatio: 0.7, zstdLevel: 3 },
+      { sizeThreshold: 100000, compressionRatio: 0.5, zstdLevel: 6 },
+      { sizeThreshold: Infinity, compressionRatio: 0.3, zstdLevel: 9 },
+    ],
+    image: [
+      { sizeThreshold: Infinity, compressionRatio: 0.97, zstdLevel: 1 }, // Minimal compression for images
+    ],
+    other: [
+      { sizeThreshold: 50000, compressionRatio: 0.65, zstdLevel: 5 },
+      { sizeThreshold: 100000, compressionRatio: 0.45, zstdLevel: 8 },
+      { sizeThreshold: Infinity, compressionRatio: 0.25, zstdLevel: 12 },
+    ],
+  }
+
+  // No compression for video or fonts
+  if (requestType === 'video' || requestType === 'font') return bytes
+
+  // Check if request type exists in the matrix
+  if (!compressionMatrix[requestType]) {
+    throw new Error('Unsupported content type')
+  }
+
+  // Find appropriate compression ratio and level based on file size
+  for (const {
+    sizeThreshold,
+    compressionRatio,
+    zstdLevel,
+  } of compressionMatrix[requestType]) {
+    if (bytes <= sizeThreshold) {
+      const compressedBytes = bytes * compressionRatio
+      return { compressedBytes, zstdLevel }
+    }
+  }
+
+  return null // This shouldn't happen if contentType is valid
+}
+
 const compressUncompressedBytes = ({
   encoding,
   bytes,
@@ -189,7 +291,7 @@ const compressUncompressedBytes = ({
         ?.rate || GZIP
   }
 
-  let ratio, brotliBytes
+  let ratio, brotliBytes, gzipBytes, zstdBytes
   switch (encoding) {
     case 'br':
       ratio = BR
@@ -198,13 +300,17 @@ const compressUncompressedBytes = ({
       return brotliBytes?.compressedBytes || bytes
     case 'gzip':
       ratio = GZIP
-      break
+      // override estimate with brotli specific algorithm
+      gzipBytes = estimateGzipCompressedSize(bytes, resourceType)
+      return gzipBytes?.compressedBytes || bytes
     case 'deflate':
       ratio = DEFLATE
       break
     case 'zstd':
       ratio = ZSTD
-      break
+      // override estimate with brotli specific algorithm
+      zstdBytes = estimateZstdCompressedSize(bytes, resourceType)
+      return zstdBytes?.compressedBytes || bytes
     default:
       ratio = 1
   }
