@@ -26,7 +26,6 @@ chrome.action.onClicked.addListener((tab) => {
 
 // Update network traffic
 function sendMessageToSidePanel(data) {
-  console.log('sendMessageToSidePanel: ', data)
   chrome.sidePanel.getOptions({}, (options) => {
     if (options.enabled) {
       chrome.runtime.sendMessage({
@@ -83,7 +82,7 @@ const handleRequest = async (details) => {
         sendMessageToSidePanel({
           url: activeTab.url,
           bytes,
-          count,
+          // count,
           greenHosting,
           mgCO2,
           emissions,
@@ -99,7 +98,7 @@ chrome.webRequest.onCompleted.addListener(
   { urls: ['<all_urls>'] } // Listen for all URLs
 )
 
-chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tabs) => {
   if (changeInfo.url) {
     chrome.runtime.sendMessage({
       action: 'url-changed',
@@ -108,10 +107,11 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
     })
     // Clear the service worker application IndexedDB data
     clearNetworkTraffic()
+    console.log('tabs: ', tabs)
   } else if (changeInfo?.status === 'loading') {
     chrome.runtime.sendMessage({
       action: 'url-reloaded',
-      url: changeInfo.url,
+      url: tabs.url,
       tabId,
     })
     // Clear the service worker application IndexedDB data

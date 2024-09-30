@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     },
   }
 
+  let url = ''
   let requests = new Set()
   let currentKey = ''
   let counts = Object.fromEntries(
@@ -21,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let typeBytes = Object.fromEntries(
     Object.keys(elements.sections).map((key) => [key, 0])
   )
+  let requestCount = 0
 
   const showSummaryData = (id, value) => {
     if (id === 'data') return
@@ -43,6 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
       aggregates[1].textContent = 'kilobytes: 0'
     })
     requests.clear()
+    requestCount = 0
     currentKey = ''
     counts = Object.fromEntries(
       Object.keys(elements.sections).map((key) => [key, 0])
@@ -83,11 +86,22 @@ document.addEventListener('DOMContentLoaded', () => {
     counter.textContent = `count: ${counts[type]}`
     typeBytes[type] = typeBytes[type] + request.bytes
     bytes.textContent = `kilobytes: ${(typeBytes[type] / 1000).toFixed(2)}`
+
+    // Update total request count
+    requestCount++
+    const requestCounter = document.getElementById('count')
+    requestCounter.innerText = requestCount
   }
 
   chrome.runtime.onMessage.addListener((message) => {
+    console.log('message: ', message)
     if (message.action === 'url-changed' || message.action === 'url-reloaded') {
-      resetPanelDisplay()
+      console.log('message.url: ', message.url)
+      console.log('url: ', url)
+      if (message.url !== url) {
+        resetPanelDisplay()
+        url = message.url
+      }
     }
 
     if (message.action === 'network-traffic') {
