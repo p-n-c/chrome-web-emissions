@@ -654,7 +654,7 @@ export const getNetworkTraffic = async (key, url, options) => {
     })
 
     const { groupedByType, groupedByTypeBytes, totalUncachedBytes } =
-      processResponses(records)
+      processResponses(tabRecords)
 
     const report = output({
       url,

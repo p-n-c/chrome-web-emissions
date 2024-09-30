@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
     )
   }
 
-  const updateSection = (type, request) => {
+  const addSection = (type, requests) => {
     const section = elements.sections[type]
     if (!section) return
 
@@ -64,42 +64,44 @@ document.addEventListener('DOMContentLoaded', () => {
     const bytes = section.querySelectorAll('div')[1]
     const dl = section.querySelector('dl') || document.createElement('dl')
 
-    const dt = document.createElement('dt')
-    const dd = document.createElement('dd')
-    const dd_div1 = document.createElement('div')
-    const dd_div2 = document.createElement('div')
+    // Clear previous entries
+    clearSection(`#${type} dl`)
+    const aggregates = document.querySelectorAll(`#${type} div`)
+    aggregates[0].textContent = 'count: 0'
+    aggregates[1].textContent = 'kilobytes: 0'
 
-    // Add request url
-    dt.textContent = request.url
+    // Add total count and bytes per type
+    counter.textContent = `count: ${requests.length}`
+    bytes.textContent = `kilobytes: ${(requests.reduce((acc, curr) => acc + curr.bytes, 0) / 1000).toFixed(2)}`
 
-    // Add request bytes
-    dd_div1.textContent = request.bytes
-    dd_div2.textContent = request.uncompressedBytes
+    requests.forEach((request) => {
+      if (currentKey !== request.key) {
+        currentKey = request.key
+      }
 
-    dd.append(dd_div1, dd_div2)
-    dl.append(dt, dd)
+      const dt = document.createElement('dt')
+      const dd = document.createElement('dd')
+      const dd_div1 = document.createElement('div')
+      const dd_div2 = document.createElement('div')
 
-    details.append(dl)
+      // Add request url
+      dt.textContent = request.url
 
-    // Update summary data (count and kilobytes)
-    counts[type]++
-    counter.textContent = `count: ${counts[type]}`
-    typeBytes[type] = typeBytes[type] + request.bytes
-    bytes.textContent = `kilobytes: ${(typeBytes[type] / 1000).toFixed(2)}`
+      // Add bytes per request
+      dd_div1.textContent = request.bytes
+      dd_div2.textContent = request.uncompressedBytes
 
-    // Update total request count
-    requestCount++
-    const requestCounter = document.getElementById('count')
-    requestCounter.innerText = requestCount
+      dd.append(dd_div1, dd_div2)
+      dl.append(dt, dd)
+
+      details.append(dl)
+    })
   }
 
   chrome.runtime.onMessage.addListener((message) => {
-    console.log('message: ', message)
     if (message.action === 'url-changed' || message.action === 'url-reloaded') {
-      console.log('message.url: ', message.url)
-      console.log('url: ', url)
+      resetPanelDisplay()
       if (message.url !== url) {
-        resetPanelDisplay()
         url = message.url
       }
     }
@@ -113,20 +115,21 @@ document.addEventListener('DOMContentLoaded', () => {
       // Show request details categories
       document.querySelector('.hidden')?.classList.remove('hidden')
 
+      // Add counts from each type to the total
+      requestCount = message.data.data.groupedByTypeBytes.reduce(
+        (prevType, currType) => {
+          return prevType + currType.count
+        },
+        0
+      )
+
+      // Update total request count
+      document.getElementById('request-count').innerText = requestCount
+
       try {
         Object.entries(message.data.data.groupedByType).forEach(
           ([type, value]) => {
-            if (!value?.length) return
-
-            value.forEach((request) => {
-              if (currentKey !== request.key) {
-                currentKey = request.key
-              }
-              if (!requests.has(request?.url)) {
-                updateSection(type, request)
-                requests.add(request.url)
-              }
-            })
+            addSection(type, value)
           }
         )
       } catch (error) {
