@@ -15,25 +15,14 @@ const getBytes = ({
   compressedBytes,
   uncompressedBytes,
   encoding,
-  compressionOptions,
   resourceType,
 }) => {
-  if (compressedBytes !== 0) return compressedBytes
-
-  return (
-    compressUncompressedBytes({
-      encoding,
-      bytes: uncompressedBytes,
-      compressionOptions,
-      resourceType,
-    }) || 0
+  return getCompressedSize(
+    compressedBytes,
+    uncompressedBytes,
+    resourceType,
+    encoding
   )
-}
-
-const compressUncompressedBytes = ({ encoding, bytes, resourceType }) => {
-  return encoding !== 'n/a'
-    ? getCompressedSize(bytes, resourceType, encoding)
-    : 0
 }
 
 const openDatabase = async () => {
@@ -157,7 +146,7 @@ const processResponses = (responses) => {
   }
 }
 
-export const getResponseDetails = async (response, env, compressionOptions) => {
+export const getResponseDetails = async (response, env) => {
   const acceptedStatuses = [200, 204, 302, 303, 304]
   const status = response.status
 
@@ -197,11 +186,10 @@ export const getResponseDetails = async (response, env, compressionOptions) => {
     resourceType = 'other'
   }
 
-  const bytes = getBytes({
+  const { bytes, compressionRatio } = getBytes({
     compressedBytes,
     uncompressedBytes,
     encoding: contentEncoding,
-    compressionOptions,
     resourceType,
   })
 
@@ -213,6 +201,7 @@ export const getResponseDetails = async (response, env, compressionOptions) => {
     bytes,
     encoding: contentEncoding,
     resourceType,
+    compressionRatio,
   }
 }
 

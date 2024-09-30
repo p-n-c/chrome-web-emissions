@@ -1,3 +1,138 @@
+const compressionMatrix = {
+  document: {
+    br: [
+      { sizeThreshold: 50000, compressionRatio: 0.6 },
+      { sizeThreshold: 100000, compressionRatio: 0.4 },
+      { sizeThreshold: Infinity, compressionRatio: 0.2 },
+    ],
+    gzip: [
+      { sizeThreshold: 50000, compressionRatio: 0.65 },
+      { sizeThreshold: 100000, compressionRatio: 0.45 },
+      { sizeThreshold: Infinity, compressionRatio: 0.25 },
+    ],
+    deflate: [
+      { sizeThreshold: 50000, compressionRatio: 0.7 },
+      { sizeThreshold: 100000, compressionRatio: 0.5 },
+      { sizeThreshold: Infinity, compressionRatio: 0.3 },
+    ],
+    zstd: [
+      { sizeThreshold: 50000, compressionRatio: 0.55 },
+      { sizeThreshold: 100000, compressionRatio: 0.35 },
+      { sizeThreshold: Infinity, compressionRatio: 0.15 },
+    ],
+  },
+  script: {
+    br: [
+      { sizeThreshold: 20000, compressionRatio: 0.7 },
+      { sizeThreshold: 100000, compressionRatio: 0.5 },
+      { sizeThreshold: Infinity, compressionRatio: 0.3 },
+    ],
+    gzip: [
+      { sizeThreshold: 20000, compressionRatio: 0.75 },
+      { sizeThreshold: 100000, compressionRatio: 0.55 },
+      { sizeThreshold: Infinity, compressionRatio: 0.35 },
+    ],
+    deflate: [
+      { sizeThreshold: 20000, compressionRatio: 0.8 },
+      { sizeThreshold: 100000, compressionRatio: 0.6 },
+      { sizeThreshold: Infinity, compressionRatio: 0.4 },
+    ],
+    zstd: [
+      { sizeThreshold: 20000, compressionRatio: 0.65 },
+      { sizeThreshold: 100000, compressionRatio: 0.45 },
+      { sizeThreshold: Infinity, compressionRatio: 0.25 },
+    ],
+  },
+  css: {
+    br: [
+      { sizeThreshold: 20000, compressionRatio: 0.7 },
+      { sizeThreshold: 100000, compressionRatio: 0.5 },
+      { sizeThreshold: Infinity, compressionRatio: 0.3 },
+    ],
+    gzip: [
+      { sizeThreshold: 20000, compressionRatio: 0.75 },
+      { sizeThreshold: 100000, compressionRatio: 0.55 },
+      { sizeThreshold: Infinity, compressionRatio: 0.35 },
+    ],
+    deflate: [
+      { sizeThreshold: 20000, compressionRatio: 0.8 },
+      { sizeThreshold: 100000, compressionRatio: 0.6 },
+      { sizeThreshold: Infinity, compressionRatio: 0.4 },
+    ],
+    zstd: [
+      { sizeThreshold: 20000, compressionRatio: 0.65 },
+      { sizeThreshold: 100000, compressionRatio: 0.45 },
+      { sizeThreshold: Infinity, compressionRatio: 0.25 },
+    ],
+  },
+  image: {
+    br: [
+      { sizeThreshold: 20000, compressionRatio: 0.7 },
+      { sizeThreshold: 100000, compressionRatio: 0.5 },
+      { sizeThreshold: Infinity, compressionRatio: 0.3 },
+    ],
+    gzip: [
+      { sizeThreshold: 20000, compressionRatio: 0.75 },
+      { sizeThreshold: 100000, compressionRatio: 0.55 },
+      { sizeThreshold: Infinity, compressionRatio: 0.35 },
+    ],
+    deflate: [
+      { sizeThreshold: 20000, compressionRatio: 0.8 },
+      { sizeThreshold: 100000, compressionRatio: 0.6 },
+      { sizeThreshold: Infinity, compressionRatio: 0.4 },
+    ],
+    zstd: [
+      { sizeThreshold: 20000, compressionRatio: 0.65 },
+      { sizeThreshold: 100000, compressionRatio: 0.45 },
+      { sizeThreshold: Infinity, compressionRatio: 0.25 },
+    ],
+  },
+  font: {
+    br: [
+      { sizeThreshold: 20000, compressionRatio: 0.7 },
+      { sizeThreshold: 100000, compressionRatio: 0.5 },
+      { sizeThreshold: Infinity, compressionRatio: 0.3 },
+    ],
+    gzip: [
+      { sizeThreshold: 20000, compressionRatio: 0.75 },
+      { sizeThreshold: 100000, compressionRatio: 0.55 },
+      { sizeThreshold: Infinity, compressionRatio: 0.35 },
+    ],
+    deflate: [
+      { sizeThreshold: 20000, compressionRatio: 0.8 },
+      { sizeThreshold: 100000, compressionRatio: 0.6 },
+      { sizeThreshold: Infinity, compressionRatio: 0.4 },
+    ],
+    zstd: [
+      { sizeThreshold: 20000, compressionRatio: 0.65 },
+      { sizeThreshold: 100000, compressionRatio: 0.45 },
+      { sizeThreshold: Infinity, compressionRatio: 0.25 },
+    ],
+  },
+  other: {
+    br: [
+      { sizeThreshold: 20000, compressionRatio: 0.7 },
+      { sizeThreshold: 100000, compressionRatio: 0.5 },
+      { sizeThreshold: Infinity, compressionRatio: 0.3 },
+    ],
+    gzip: [
+      { sizeThreshold: 20000, compressionRatio: 0.75 },
+      { sizeThreshold: 100000, compressionRatio: 0.55 },
+      { sizeThreshold: Infinity, compressionRatio: 0.35 },
+    ],
+    deflate: [
+      { sizeThreshold: 20000, compressionRatio: 0.8 },
+      { sizeThreshold: 100000, compressionRatio: 0.6 },
+      { sizeThreshold: Infinity, compressionRatio: 0.4 },
+    ],
+    zstd: [
+      { sizeThreshold: 20000, compressionRatio: 0.65 },
+      { sizeThreshold: 100000, compressionRatio: 0.45 },
+      { sizeThreshold: Infinity, compressionRatio: 0.25 },
+    ],
+  },
+}
+
 const compressionRates = {
   br: [
     { level: 0, rate: 1.2 },
@@ -51,160 +186,34 @@ const compressionRates = {
   ],
 }
 
-const compressionMatrix = {
-  document: [
-    {
-      sizeThreshold: 50000,
-      compressionRatio: 0.6,
-      brotliLevel: 5,
-      gzipLevel: 6,
-      deflateLevel: 5,
-      zstdLevel: 5,
-    },
-    {
-      sizeThreshold: 100000,
-      compressionRatio: 0.4,
-      brotliLevel: 6,
-      gzipLevel: 7,
-      deflateLevel: 6,
-      zstdLevel: 8,
-    },
-    {
-      sizeThreshold: Infinity,
-      compressionRatio: 0.2,
-      brotliLevel: 8,
-      gzipLevel: 9,
-      deflateLevel: 9,
-      zstdLevel: 12,
-    },
-  ],
-  script: [
-    {
-      sizeThreshold: 20000,
-      compressionRatio: 0.7,
-      brotliLevel: 5,
-      gzipLevel: 5,
-      deflateLevel: 4,
-      zstdLevel: 4,
-    },
-    {
-      sizeThreshold: 100000,
-      compressionRatio: 0.5,
-      brotliLevel: 6,
-      gzipLevel: 6,
-      deflateLevel: 5,
-      zstdLevel: 7,
-    },
-    {
-      sizeThreshold: Infinity,
-      compressionRatio: 0.3,
-      brotliLevel: 8,
-      gzipLevel: 9,
-      deflateLevel: 7,
-      zstdLevel: 9,
-    },
-  ],
-  css: [
-    {
-      sizeThreshold: 10000,
-      compressionRatio: 0.7,
-      brotliLevel: 4,
-      gzipLevel: 4,
-      deflateLevel: 3,
-      zstdLevel: 3,
-    },
-    {
-      sizeThreshold: 100000,
-      compressionRatio: 0.5,
-      brotliLevel: 5,
-      gzipLevel: 6,
-      deflateLevel: 5,
-      zstdLevel: 6,
-    },
-    {
-      sizeThreshold: Infinity,
-      compressionRatio: 0.3,
-      brotliLevel: 8,
-      gzipLevel: 8,
-      deflateLevel: 8,
-      zstdLevel: 9,
-    },
-  ],
-  image: [
-    {
-      sizeThreshold: Infinity,
-      compressionRatio: 0.95,
-      brotliLevel: 1,
-      gzipLevel: 1,
-      deflateLevel: 1,
-      zstdLevel: 1,
-    },
-  ],
-  other: [
-    {
-      sizeThreshold: 50000,
-      compressionRatio: 0.6,
-      brotliLevel: 5,
-      gzipLevel: 6,
-      deflateLevel: 5,
-      zstdLevel: 5,
-    },
-    {
-      sizeThreshold: 100000,
-      compressionRatio: 0.4,
-      brotliLevel: 6,
-      gzipLevel: 7,
-      deflateLevel: 6,
-      zstdLevel: 8,
-    },
-    {
-      sizeThreshold: Infinity,
-      compressionRatio: 0.2,
-      brotliLevel: 8,
-      gzipLevel: 9,
-      deflateLevel: 9,
-      zstdLevel: 12,
-    },
-  ],
-}
-
-export const getCompressedSize = (bytes, requestType, encoding) => {
-  if (requestType === 'video' || requestType === 'font') return bytes
-
-  const matrix = compressionMatrix[requestType]
-  if (!matrix) throw new Error('Unsupported content type')
-
-  let level, compressionRatio
-  for (const {
-    sizeThreshold,
-    compressionRatio: ratio,
-    brotliLevel,
-    gzipLevel,
-    deflateLevel,
-    zstdLevel,
-  } of matrix) {
-    if (bytes <= sizeThreshold) {
-      compressionRatio = ratio
-      switch (encoding) {
-        case 'br':
-          level = brotliLevel
-          break
-        case 'gzip':
-          level = gzipLevel
-          break
-        case 'deflate':
-          level = deflateLevel
-          break
-        case 'zstd':
-          level = zstdLevel
-          break
-        default:
-          throw new Error(`Unsupported encoding ${encoding}`)
-      }
-      break
+export const getCompressedSize = (
+  compressedBytes,
+  uncompressedBytes,
+  requestType,
+  encoding
+) => {
+  if (
+    !compressionMatrix[requestType] ||
+    !compressionMatrix[requestType][encoding] ||
+    compressedBytes !== 0
+  ) {
+    return {
+      bytes: compressedBytes,
+      compressionRatio: 'n/a',
     }
   }
 
-  const rate = compressionRates[encoding]?.find((r) => r.level === level)?.rate
-  return rate ? Math.round(bytes / rate) : bytes
+  const matrix = compressionMatrix[requestType][encoding]
+  const selectedLevel = matrix.find(
+    ({ sizeThreshold }) => uncompressedBytes <= sizeThreshold
+  )
+
+  if (!selectedLevel) return uncompressedBytes // No matching threshold found, return original size
+
+  const compressionRatio = selectedLevel.compressionRatio
+
+  return {
+    bytes: Math.round(uncompressedBytes * compressionRatio),
+    compressionRatio,
+  }
 }
