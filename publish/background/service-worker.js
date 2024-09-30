@@ -47,9 +47,14 @@ const handleRequest = async (details) => {
     // Exclude, for example, wss
     const permittedSchema = ['http:', 'https:']
 
-    const response = await fetch(url)
-    const urlObject = new URL(response.url)
-    const scheme = urlObject.protocol // This will return 'https:' or 'http:'
+    let response, scheme
+
+    try {
+      response = await fetch(url)
+      scheme = new URL(response.url)?.protocol
+    } catch (e) {
+      console.log(e)
+    }
 
     if (permittedSchema.includes(scheme)) {
       const clonedResponse = response.clone()
