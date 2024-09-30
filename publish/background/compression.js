@@ -2,7 +2,7 @@ const compressionMatrix = {
   document: {
     br: [
       { sizeThreshold: 50000, compressionRatio: 0.6 },
-      { sizeThreshold: 100000, compressionRatio: 0.4 },
+      { sizeThreshold: 100000, compressionRatio: 0.2 },
       { sizeThreshold: Infinity, compressionRatio: 0.2 },
     ],
     gzip: [
