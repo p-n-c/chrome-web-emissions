@@ -56,15 +56,15 @@ const compressionMatrix = {
     br: [
       {
         sizeThreshold: 20000,
-        compressionRatio: compressionRates.br.find((r) => r.level === 2).rate,
-      },
-      {
-        sizeThreshold: 100000,
         compressionRatio: compressionRates.br.find((r) => r.level === 5).rate,
       },
       {
+        sizeThreshold: 100000,
+        compressionRatio: compressionRates.br.find((r) => r.level === 11).rate,
+      },
+      {
         sizeThreshold: Infinity,
-        compressionRatio: compressionRates.br.find((r) => r.level === 9).rate,
+        compressionRatio: compressionRates.br.find((r) => r.level === 11).rate,
       },
     ],
     gzip: [
@@ -239,15 +239,15 @@ const compressionMatrix = {
     br: [
       {
         sizeThreshold: 20000,
-        compressionRatio: compressionRates.br.find((r) => r.level === 0).rate,
-      },
-      {
-        sizeThreshold: 100000,
         compressionRatio: compressionRates.br.find((r) => r.level === 5).rate,
       },
       {
+        sizeThreshold: 100000,
+        compressionRatio: compressionRates.br.find((r) => r.level === 4).rate,
+      },
+      {
         sizeThreshold: Infinity,
-        compressionRatio: compressionRates.br.find((r) => r.level === 9).rate,
+        compressionRatio: compressionRates.br.find((r) => r.level === 4).rate,
       },
     ],
     gzip: [
