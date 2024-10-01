@@ -62,7 +62,8 @@ const handleRequest = async (details) => {
         clonedResponse,
         'browser',
         method,
-        type
+        type,
+        initiator
       )
       const activeTab = await getCurrentTab()
 
@@ -114,7 +115,6 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tabs) => {
     })
     // Clear the service worker application IndexedDB data
     clearNetworkTraffic()
-    console.log('tabs: ', tabs)
   } else if (changeInfo?.status === 'loading') {
     chrome.runtime.sendMessage({
       action: 'url-reloaded',
