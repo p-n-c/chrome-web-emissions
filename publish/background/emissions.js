@@ -175,7 +175,7 @@ export const getResponseDetails = async (
   if (type === 'image') {
     // In order to factor in the discrepancy between the reported response size and the size given in Chrome DevTools we have to take into account a Device Pixel Ratio (DPR) of 2.
     // DPR of 2 means that for every 1 logical pixel, there are 2 physical pixels in each dimension. This results in 4 physical pixels for every 1 logical pixel in total area.
-    // The ratio you're seeing (0.7) is close to 1/√2, which is approximately 0.707.
+    // The ratio between request response image sizes and the size reported in DevTools (~0.7) is close to 1/√2, which is approximately 0.707.
     // This √2 factor often comes into play with DPR calculations because it represents the scaling factor for linear dimensions (width or height) when the total pixel count is doubled.
     // The request response is reporting the full, physical pixel dimensions of the image.
     // DevTools is reporting the logical pixel dimensions, which are scaled down by a factor related to the DPR.
