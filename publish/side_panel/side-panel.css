@@ -69,11 +69,11 @@ section {
   }
 }
 
-details {
+dl {
   border-bottom: 1px solid var(--line-colour);
 }
 
-section:last-of-type details {
+section:last-of-type dl {
   border-bottom: none;
 }
 
