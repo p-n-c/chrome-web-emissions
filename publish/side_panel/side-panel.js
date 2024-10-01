@@ -42,12 +42,6 @@ document.addEventListener('DOMContentLoaded', () => {
     requests.clear()
     requestCount = 0
     currentKey = ''
-    counts = Object.fromEntries(
-      Object.keys(elements.sections).map((key) => [key, 0])
-    )
-    typeBytes = Object.fromEntries(
-      Object.keys(elements.sections).map((key) => [key, 0])
-    )
   }
 
   const populateSection = (type, requests) => {
