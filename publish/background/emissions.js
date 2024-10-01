@@ -146,7 +146,13 @@ const processResponses = (responses) => {
   }
 }
 
-export const getResponseDetails = async (response, env, method, type) => {
+export const getResponseDetails = async (
+  response,
+  env,
+  method,
+  type,
+  initiator
+) => {
   const acceptedStatuses = [200, 204, 302, 303, 304]
   const status = response.status
 
@@ -169,7 +175,6 @@ export const getResponseDetails = async (response, env, method, type) => {
   const compressedBytes = contentLength ? parseInt(contentLength, 10) : 0
 
   let resourceType
-
   if (contentType?.includes('text/html')) {
     resourceType = 'document'
   } else if (contentType?.includes('javascript')) {
@@ -180,7 +185,10 @@ export const getResponseDetails = async (response, env, method, type) => {
     resourceType = 'image'
   } else if (contentType?.includes('css')) {
     resourceType = 'css'
-  } else if (contentType?.includes('font')) {
+  } else if (
+    contentType?.includes('font') ||
+    contentType?.includes('octet-stream')
+  ) {
     resourceType = 'font'
   } else if (type === 'xmlhttprequest') {
     resourceType = 'xhr'
