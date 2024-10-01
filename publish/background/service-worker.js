@@ -42,7 +42,7 @@ function sendMessageToSidePanel(data) {
 const handleRequest = async (details) => {
   // Ensure it's a page request and not an extension request
   if (details.tabId !== -1) {
-    const { url, initiator } = details
+    const { url, initiator, method, type } = details
 
     // Exclude, for example, wss
     const permittedSchema = ['http:', 'https:']
@@ -60,7 +60,9 @@ const handleRequest = async (details) => {
       const clonedResponse = response.clone()
       const responseDetails = await getResponseDetails(
         clonedResponse,
-        'browser'
+        'browser',
+        method,
+        type
       )
       const activeTab = await getCurrentTab()
 
@@ -71,7 +73,7 @@ const handleRequest = async (details) => {
         responseDetails.key = key
 
         // Save request details to the service worker application IndexedDB database
-        await saveNetworkTraffic(responseDetails)
+        await saveNetworkTraffic({ ...responseDetails, method, type })
 
         const options = {
           hostingOptions: {
@@ -87,7 +89,7 @@ const handleRequest = async (details) => {
         sendMessageToSidePanel({
           url: activeTab.url,
           bytes,
-          // count,
+          count,
           greenHosting,
           mgCO2,
           emissions,

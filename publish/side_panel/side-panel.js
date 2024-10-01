@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
       image: document.getElementById('image'),
       video: document.getElementById('video'),
       font: document.getElementById('font'),
+      xhr: document.getElementById('xhr'),
       other: document.getElementById('other'),
     },
   }

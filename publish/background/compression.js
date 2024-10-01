@@ -109,6 +109,28 @@ const compressionMatrix = {
       { sizeThreshold: Infinity, compressionRatio: 0.25 },
     ],
   },
+  xhr: {
+    br: [
+      { sizeThreshold: 20000, compressionRatio: 0.7 },
+      { sizeThreshold: 100000, compressionRatio: 0.5 },
+      { sizeThreshold: Infinity, compressionRatio: 0.3 },
+    ],
+    gzip: [
+      { sizeThreshold: 20000, compressionRatio: 0.75 },
+      { sizeThreshold: 100000, compressionRatio: 0.55 },
+      { sizeThreshold: Infinity, compressionRatio: 0.35 },
+    ],
+    deflate: [
+      { sizeThreshold: 20000, compressionRatio: 0.8 },
+      { sizeThreshold: 100000, compressionRatio: 0.6 },
+      { sizeThreshold: Infinity, compressionRatio: 0.4 },
+    ],
+    zstd: [
+      { sizeThreshold: 20000, compressionRatio: 0.65 },
+      { sizeThreshold: 100000, compressionRatio: 0.45 },
+      { sizeThreshold: Infinity, compressionRatio: 0.25 },
+    ],
+  },
   other: {
     br: [
       { sizeThreshold: 20000, compressionRatio: 0.7 },

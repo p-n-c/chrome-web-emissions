@@ -146,7 +146,7 @@ const processResponses = (responses) => {
   }
 }
 
-export const getResponseDetails = async (response, env) => {
+export const getResponseDetails = async (response, env, method, type) => {
   const acceptedStatuses = [200, 204, 302, 303, 304]
   const status = response.status
 
@@ -182,6 +182,8 @@ export const getResponseDetails = async (response, env) => {
     resourceType = 'css'
   } else if (contentType?.includes('font')) {
     resourceType = 'font'
+  } else if (type === 'xmlhttprequest') {
+    resourceType = 'xhr'
   } else {
     resourceType = 'other'
   }
