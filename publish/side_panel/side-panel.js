@@ -17,12 +17,6 @@ document.addEventListener('DOMContentLoaded', () => {
   let url = ''
   let requests = new Set()
   let currentKey = ''
-  let counts = Object.fromEntries(
-    Object.keys(elements.sections).map((key) => [key, 0])
-  )
-  let typeBytes = Object.fromEntries(
-    Object.keys(elements.sections).map((key) => [key, 0])
-  )
   let requestCount = 0
 
   const showSummaryData = (id, value) => {
@@ -32,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (element) element.textContent = displayValue
   }
 
-  const clearSection = (selector) => {
+  const resetSection = (selector) => {
     const element = document.querySelector(selector)
     if (element) element.innerHTML = ''
     else console.warn(`${selector} does not have a corresponding element`)
@@ -40,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const resetPanelDisplay = () => {
     Object.keys(elements.sections).forEach((section) => {
-      clearSection(`#${section} dl`)
+      resetSection(`#${section} dl`)
       const aggregates = document.querySelectorAll(`#${section} div`)
       aggregates[0].textContent = 'count: 0'
       aggregates[1].textContent = 'kilobytes: 0'
@@ -56,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
     )
   }
 
-  const addSection = (type, requests) => {
+  const populateSection = (type, requests) => {
     const section = elements.sections[type]
     if (!section) return
 
@@ -66,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const dl = section.querySelector('dl') || document.createElement('dl')
 
     // Clear previous entries
-    clearSection(`#${type} dl`)
+    resetSection(`#${type} dl`)
     const aggregates = document.querySelectorAll(`#${type} div`)
     aggregates[0].textContent = 'count: 0'
     aggregates[1].textContent = 'kilobytes: 0'
@@ -130,7 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         Object.entries(message.data.data.groupedByType).forEach(
           ([type, value]) => {
-            addSection(type, value)
+            populateSection(type, value)
           }
         )
       } catch (error) {
