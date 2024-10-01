@@ -155,6 +155,7 @@ const compressionMatrix = {
   },
 }
 
+// retain for possible level lookup, and as a rate reference
 const compressionRates = {
   br: [
     { level: 0, rate: 1.2 },
