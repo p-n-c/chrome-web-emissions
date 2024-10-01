@@ -53,7 +53,7 @@ const compressionRates = {
 
 // Many sites have a high compression rate for JS files using gzip.
 // This JS skew is introduced to allow for that. Experimentally, this correction is valid.
-const JAVASCRIPT_SKEW = 0.5
+const JAVASCRIPT_SKEW = 0.2
 
 // From Claude:
 // The progression of improvement from level 0 to 9 looks reasonable, with diminishing returns at higher levels.
@@ -142,7 +142,7 @@ const compressionMatrix = {
       {
         sizeThreshold: 20000,
         compressionRatio:
-          compressionRates.gzip.find((r) => r.level === 2).rate *
+          compressionRates.gzip.find((r) => r.level === 7).rate *
           JAVASCRIPT_SKEW,
       },
       {
@@ -438,15 +438,18 @@ const compressionMatrix = {
     br: [
       {
         sizeThreshold: 20000,
-        compressionRatio: compressionRates.br.find((r) => r.level === 0).rate,
+        compressionRatio:
+          compressionRates.br.find((r) => r.level === 2).rate * JAVASCRIPT_SKEW,
       },
       {
         sizeThreshold: 100000,
-        compressionRatio: compressionRates.br.find((r) => r.level === 5).rate,
+        compressionRatio:
+          compressionRates.br.find((r) => r.level === 8).rate * JAVASCRIPT_SKEW,
       },
       {
         sizeThreshold: Infinity,
-        compressionRatio: compressionRates.br.find((r) => r.level === 9).rate,
+        compressionRatio:
+          compressionRates.br.find((r) => r.level === 9).rate * JAVASCRIPT_SKEW,
       },
     ],
     gzip: [
