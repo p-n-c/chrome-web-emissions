@@ -26,18 +26,21 @@ document.addEventListener('DOMContentLoaded', () => {
     if (element) element.textContent = displayValue
   }
 
-  const resetSection = (selector) => {
-    const element = document.querySelector(selector)
-    if (element) element.innerHTML = ''
-    else console.warn(`${selector} does not have a corresponding element`)
+  const resetSection = (type) => {
+    const element = document.querySelector(`#${type} dl`)
+    if (element) {
+      element.innerHTML = ''
+      const aggregates = document.querySelectorAll(`#${type} div`)
+      aggregates[0].textContent = `${type} count: 0`
+      aggregates[1].textContent = `${type} kilobytes: 0`
+    } else {
+      console.warn(`${type} does not have a corresponding element`)
+    }
   }
 
   const resetPanelDisplay = () => {
-    Object.keys(elements.sections).forEach((section) => {
-      resetSection(`#${section} dl`)
-      const aggregates = document.querySelectorAll(`#${section} div`)
-      aggregates[0].textContent = 'count: 0'
-      aggregates[1].textContent = 'kilobytes: 0'
+    Object.keys(elements.sections).forEach((type) => {
+      resetSection(type)
     })
     requests.clear()
     requestCount = 0
@@ -54,14 +57,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const dl = section.querySelector('dl') || document.createElement('dl')
 
     // Clear previous entries
-    resetSection(`#${type} dl`)
-    const aggregates = document.querySelectorAll(`#${type} div`)
-    aggregates[0].textContent = 'count: 0'
-    aggregates[1].textContent = 'kilobytes: 0'
+    resetSection(type)
 
     // Add total count and bytes per type
-    counter.textContent = `count: ${requests.length}`
-    bytes.textContent = `kilobytes: ${(requests.reduce((acc, curr) => acc + curr.bytes, 0) / 1000).toFixed(2)}`
+    counter.textContent = `${type} count: ${requests.length}`
+    bytes.textContent = `${type} kilobytes: ${(requests.reduce((acc, curr) => acc + curr.bytes, 0) / 1000).toFixed(2)}`
 
     requests.forEach((request) => {
       if (currentKey !== request.key) {
