@@ -51,6 +51,16 @@ const compressionRates = {
   ],
 }
 
+// Many sites have a high compression rate for JS files using gzip.
+// This JS skew is introduced to allow for that. Experimentally, this correction is valid.
+const JAVASCRIPT_SKEW = 0.5
+
+// From Claude:
+// The progression of improvement from level 0 to 9 looks reasonable, with diminishing returns at higher levels.
+// For text-based web content (HTML, CSS, JavaScript), compression ratios of 70-80% (equivalent to rates of about 1/3 to 1/5) are common, which aligns with what you're seeing in Chrome DevTools.
+// The actual compression ratio can vary widely based on the specific content. Some text files might compress by 90% or more (1/10 rate), while others might only compress by 50% (1/2 rate).
+// The ratios you provided might be more representative of a mix of different file types or more conservative estimates to set realistic expectations.
+
 const compressionMatrix = {
   document: {
     br: [
@@ -131,15 +141,21 @@ const compressionMatrix = {
     gzip: [
       {
         sizeThreshold: 20000,
-        compressionRatio: compressionRates.gzip.find((r) => r.level === 2).rate,
+        compressionRatio:
+          compressionRates.gzip.find((r) => r.level === 2).rate *
+          JAVASCRIPT_SKEW,
       },
       {
         sizeThreshold: 100000,
-        compressionRatio: compressionRates.gzip.find((r) => r.level === 5).rate,
+        compressionRatio:
+          compressionRates.gzip.find((r) => r.level === 8).rate *
+          JAVASCRIPT_SKEW,
       },
       {
         sizeThreshold: Infinity,
-        compressionRatio: compressionRates.gzip.find((r) => r.level === 9).rate,
+        compressionRatio:
+          compressionRates.gzip.find((r) => r.level === 9).rate *
+          JAVASCRIPT_SKEW,
       },
     ],
     deflate: [
@@ -192,11 +208,11 @@ const compressionMatrix = {
     gzip: [
       {
         sizeThreshold: 20000,
-        compressionRatio: compressionRates.gzip.find((r) => r.level === 2).rate,
+        compressionRatio: compressionRates.gzip.find((r) => r.level === 9).rate,
       },
       {
         sizeThreshold: 100000,
-        compressionRatio: compressionRates.gzip.find((r) => r.level === 5).rate,
+        compressionRatio: compressionRates.gzip.find((r) => r.level === 9).rate,
       },
       {
         sizeThreshold: Infinity,
@@ -253,7 +269,7 @@ const compressionMatrix = {
     gzip: [
       {
         sizeThreshold: 20000,
-        compressionRatio: compressionRates.gzip.find((r) => r.level === 0).rate,
+        compressionRatio: compressionRates.gzip.find((r) => r.level === 5).rate,
       },
       {
         sizeThreshold: 100000,
