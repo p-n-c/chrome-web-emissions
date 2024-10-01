@@ -175,25 +175,21 @@ export const getResponseDetails = async (
   const compressedBytes = contentLength ? parseInt(contentLength, 10) : 0
 
   let resourceType
-  if (contentType?.includes('text/html')) {
-    resourceType = 'document'
-  } else if (contentType?.includes('javascript')) {
-    resourceType = 'script'
-  } else if (contentType?.includes('video')) {
-    resourceType = 'video'
-  } else if (contentType?.includes('image')) {
-    resourceType = 'image'
-  } else if (contentType?.includes('css')) {
-    resourceType = 'css'
-  } else if (
-    contentType?.includes('font') ||
-    contentType?.includes('octet-stream')
-  ) {
-    resourceType = 'font'
-  } else if (type === 'xmlhttprequest') {
-    resourceType = 'xhr'
-  } else {
-    resourceType = 'other'
+
+  switch (type) {
+    case 'xmlhttprequest':
+      resourceType = 'xhr'
+      break
+    case 'stylesheet':
+      resourceType = 'css'
+      break
+    case 'main_frame':
+    case 'sub_frame':
+    case 'ping':
+      resourceType = 'document'
+      break
+    default:
+      resourceType = type
   }
 
   const { bytes, compressionRatio } = getBytes({
