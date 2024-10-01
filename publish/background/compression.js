@@ -52,6 +52,67 @@ const compressionRates = {
 }
 
 const compressionMatrix = {
+  xhr: {
+    br: [
+      {
+        sizeThreshold: 20000,
+        compressionRatio: compressionRates.br.find((r) => r.level === 2).rate,
+      },
+      {
+        sizeThreshold: 100000,
+        compressionRatio: compressionRates.br.find((r) => r.level === 5).rate,
+      },
+      {
+        sizeThreshold: Infinity,
+        compressionRatio: compressionRates.br.find((r) => r.level === 9).rate,
+      },
+    ],
+    gzip: [
+      {
+        sizeThreshold: 20000,
+        compressionRatio: compressionRates.gzip.find((r) => r.level === 0).rate,
+      },
+      {
+        sizeThreshold: 100000,
+        compressionRatio: compressionRates.gzip.find((r) => r.level === 5).rate,
+      },
+      {
+        sizeThreshold: Infinity,
+        compressionRatio: compressionRates.gzip.find((r) => r.level === 9).rate,
+      },
+    ],
+    deflate: [
+      {
+        sizeThreshold: 20000,
+        compressionRatio: compressionRates.deflate.find((r) => r.level === 0)
+          .rate,
+      },
+      {
+        sizeThreshold: 100000,
+        compressionRatio: compressionRates.deflate.find((r) => r.level === 5)
+          .rate,
+      },
+      {
+        sizeThreshold: Infinity,
+        compressionRatio: compressionRates.deflate.find((r) => r.level === 9)
+          .rate,
+      },
+    ],
+    zstd: [
+      {
+        sizeThreshold: 20000,
+        compressionRatio: compressionRates.zstd.find((r) => r.level === 0).rate,
+      },
+      {
+        sizeThreshold: 100000,
+        compressionRatio: compressionRates.zstd.find((r) => r.level === 5).rate,
+      },
+      {
+        sizeThreshold: Infinity,
+        compressionRatio: compressionRates.zstd.find((r) => r.level === 9).rate,
+      },
+    ],
+  },
   document: {
     br: [
       {
@@ -101,67 +162,6 @@ const compressionMatrix = {
     zstd: [
       {
         sizeThreshold: 50000,
-        compressionRatio: compressionRates.zstd.find((r) => r.level === 0).rate,
-      },
-      {
-        sizeThreshold: 100000,
-        compressionRatio: compressionRates.zstd.find((r) => r.level === 5).rate,
-      },
-      {
-        sizeThreshold: Infinity,
-        compressionRatio: compressionRates.zstd.find((r) => r.level === 9).rate,
-      },
-    ],
-  },
-  script: {
-    br: [
-      {
-        sizeThreshold: 20000,
-        compressionRatio: compressionRates.br.find((r) => r.level === 0).rate,
-      },
-      {
-        sizeThreshold: 100000,
-        compressionRatio: compressionRates.br.find((r) => r.level === 5).rate,
-      },
-      {
-        sizeThreshold: Infinity,
-        compressionRatio: compressionRates.br.find((r) => r.level === 9).rate,
-      },
-    ],
-    gzip: [
-      {
-        sizeThreshold: 20000,
-        compressionRatio: compressionRates.gzip.find((r) => r.level === 7).rate,
-      },
-      {
-        sizeThreshold: 100000,
-        compressionRatio: compressionRates.gzip.find((r) => r.level === 8).rate,
-      },
-      {
-        sizeThreshold: Infinity,
-        compressionRatio: compressionRates.gzip.find((r) => r.level === 9).rate,
-      },
-    ],
-    deflate: [
-      {
-        sizeThreshold: 20000,
-        compressionRatio: compressionRates.deflate.find((r) => r.level === 0)
-          .rate,
-      },
-      {
-        sizeThreshold: 100000,
-        compressionRatio: compressionRates.deflate.find((r) => r.level === 5)
-          .rate,
-      },
-      {
-        sizeThreshold: Infinity,
-        compressionRatio: compressionRates.deflate.find((r) => r.level === 9)
-          .rate,
-      },
-    ],
-    zstd: [
-      {
-        sizeThreshold: 20000,
         compressionRatio: compressionRates.zstd.find((r) => r.level === 0).rate,
       },
       {
@@ -235,11 +235,11 @@ const compressionMatrix = {
       },
     ],
   },
-  image: {
+  script: {
     br: [
       {
         sizeThreshold: 20000,
-        compressionRatio: compressionRates.br.find((r) => r.level === 2).rate,
+        compressionRatio: compressionRates.br.find((r) => r.level === 0).rate,
       },
       {
         sizeThreshold: 100000,
@@ -253,11 +253,11 @@ const compressionMatrix = {
     gzip: [
       {
         sizeThreshold: 20000,
-        compressionRatio: compressionRates.gzip.find((r) => r.level === 5).rate,
+        compressionRatio: compressionRates.gzip.find((r) => r.level === 7).rate,
       },
       {
         sizeThreshold: 100000,
-        compressionRatio: compressionRates.gzip.find((r) => r.level === 5).rate,
+        compressionRatio: compressionRates.gzip.find((r) => r.level === 8).rate,
       },
       {
         sizeThreshold: Infinity,
@@ -357,11 +357,11 @@ const compressionMatrix = {
       },
     ],
   },
-  xhr: {
+  image: {
     br: [
       {
         sizeThreshold: 20000,
-        compressionRatio: compressionRates.br.find((r) => r.level === 0).rate,
+        compressionRatio: compressionRates.br.find((r) => r.level === 2).rate,
       },
       {
         sizeThreshold: 100000,
@@ -375,7 +375,68 @@ const compressionMatrix = {
     gzip: [
       {
         sizeThreshold: 20000,
-        compressionRatio: compressionRates.gzip.find((r) => r.level === 0).rate,
+        compressionRatio: compressionRates.gzip.find((r) => r.level === 5).rate,
+      },
+      {
+        sizeThreshold: 100000,
+        compressionRatio: compressionRates.gzip.find((r) => r.level === 5).rate,
+      },
+      {
+        sizeThreshold: Infinity,
+        compressionRatio: compressionRates.gzip.find((r) => r.level === 9).rate,
+      },
+    ],
+    deflate: [
+      {
+        sizeThreshold: 20000,
+        compressionRatio: compressionRates.deflate.find((r) => r.level === 0)
+          .rate,
+      },
+      {
+        sizeThreshold: 100000,
+        compressionRatio: compressionRates.deflate.find((r) => r.level === 5)
+          .rate,
+      },
+      {
+        sizeThreshold: Infinity,
+        compressionRatio: compressionRates.deflate.find((r) => r.level === 9)
+          .rate,
+      },
+    ],
+    zstd: [
+      {
+        sizeThreshold: 20000,
+        compressionRatio: compressionRates.zstd.find((r) => r.level === 0).rate,
+      },
+      {
+        sizeThreshold: 100000,
+        compressionRatio: compressionRates.zstd.find((r) => r.level === 5).rate,
+      },
+      {
+        sizeThreshold: Infinity,
+        compressionRatio: compressionRates.zstd.find((r) => r.level === 9).rate,
+      },
+    ],
+  },
+  media: {
+    br: [
+      {
+        sizeThreshold: 20000,
+        compressionRatio: compressionRates.br.find((r) => r.level === 2).rate,
+      },
+      {
+        sizeThreshold: 100000,
+        compressionRatio: compressionRates.br.find((r) => r.level === 5).rate,
+      },
+      {
+        sizeThreshold: Infinity,
+        compressionRatio: compressionRates.br.find((r) => r.level === 9).rate,
+      },
+    ],
+    gzip: [
+      {
+        sizeThreshold: 20000,
+        compressionRatio: compressionRates.gzip.find((r) => r.level === 5).rate,
       },
       {
         sizeThreshold: 100000,
