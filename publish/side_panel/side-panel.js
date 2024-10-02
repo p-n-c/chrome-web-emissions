@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let requests = new Set()
   let currentKey = ''
   let requestCount = 0
+  let failedRequests = 0
 
   const showSummaryData = (id, value) => {
     if (id === 'data') return
@@ -45,6 +46,9 @@ document.addEventListener('DOMContentLoaded', () => {
     requests.clear()
     requestCount = 0
     currentKey = ''
+    failedRequests = 0
+
+    document.querySelector('#failed-requests > div').innerText = ''
   }
 
   const populateSection = (type, requests) => {
@@ -97,36 +101,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (message.action === 'network-traffic') {
       // Show summary data
-      Object.entries(message.data).forEach(([key, value]) =>
-        showSummaryData(key, value)
-      )
-
-      // Show request details categories
-      document.querySelector('.hidden')?.classList.remove('hidden')
-
-      // Add counts from each type to the total
-      requestCount = message.data.data.groupedByTypeBytes.reduce(
-        (prevType, currType) => {
-          return prevType + currType.count
-        },
-        0
-      )
-
-      // Update total request count
-      document.getElementById('request-count').innerText = requestCount
-
-      try {
-        Object.entries(message.data.data.groupedByType).forEach(
-          ([type, value]) => {
-            populateSection(type, value)
-          }
+      if (message.data.status === 200) {
+        Object.entries(message.data).forEach(([key, value]) =>
+          showSummaryData(key, value)
         )
-      } catch (error) {
-        console.error('Error processing network traffic:', error)
-      }
 
-      // Hide visitor notification to reload the page
-      elements.notification.style.display = 'none'
+        // Show request details categories
+        document.querySelector('.hidden')?.classList.remove('hidden')
+
+        // Add counts from each type to the total
+        requestCount = message.data.data.groupedByTypeBytes.reduce(
+          (prevType, currType) => {
+            return prevType + currType.count
+          },
+          0
+        )
+
+        // Update total request count
+        document.getElementById('request-count').innerText = requestCount
+
+        try {
+          Object.entries(message.data.data.groupedByType).forEach(
+            ([type, value]) => {
+              populateSection(type, value)
+            }
+          )
+        } catch (error) {
+          console.error('Error processing network traffic:', error)
+        }
+
+        // Hide visitor notification to reload the page
+        elements.notification.style.display = 'none'
+      } else {
+        failedRequests++
+        document.querySelector('#failed-requests > div').innerText =
+          `There were ${failedRequests} failed requests.`
+      }
     }
   })
 })

@@ -97,7 +97,21 @@ const handleRequest = async (details) => {
           mgCO2,
           emissions,
           data,
+          status: response.status,
         })
+      } else {
+        if (response.status !== 200) {
+          sendMessageToSidePanel({
+            url: response.url,
+            bytes: 0,
+            count: 0,
+            greenHosting: false,
+            mgCO2: 0,
+            emissions: 0,
+            data: null,
+            status: response.status,
+          })
+        }
       }
     }
   }
