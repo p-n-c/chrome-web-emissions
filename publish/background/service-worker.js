@@ -40,11 +40,15 @@ function sendMessageToSidePanel(data) {
 
 // Handle network requests (triggered by page load)
 const handleRequest = async (details) => {
-  // Ensure it's a page request and not an extension request
-  if (details.tabId !== -1) {
+  const activeTab = await getCurrentTab()
+
+  const isActiveTab = activeTab?.id === details.tabId
+
+  // Ensure it's a request associated with the current tab (page)
+  if (isActiveTab) {
     const { url, initiator, method, type } = details
 
-    // Exclude, for example, wss
+    // Implicitly exclude, for example, wss
     const permittedSchema = ['http:', 'https:']
 
     let response, scheme
@@ -58,6 +62,7 @@ const handleRequest = async (details) => {
 
     if (permittedSchema.includes(scheme)) {
       const clonedResponse = response.clone()
+
       const responseDetails = await getResponseDetails(
         clonedResponse,
         'browser',
@@ -65,11 +70,8 @@ const handleRequest = async (details) => {
         type,
         initiator
       )
-      const activeTab = await getCurrentTab()
 
-      const isActiveTab = activeTab?.id === details.tabId
-
-      if (isActiveTab && responseDetails) {
+      if (responseDetails) {
         const key = `${details.tabId}:${activeTab.url}`
         responseDetails.key = key
 
