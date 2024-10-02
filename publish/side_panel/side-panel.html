@@ -3,12 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Emissions tracker by People & Code</title>
+    <title>Emissions Tracker by People & Code</title>
     <link rel="stylesheet" href="side-panel.css" />
   </head>
   <body>
     <header>
-      <h1>Emissions tracker</h1>
+      <h1>Emissions Tracker</h1>
     </header>
     <main>
       <h2>Summary</h2>
@@ -17,8 +17,8 @@
         <dd id="url">-</dd>
         <dt>Requested data in kilobytes</dt>
         <dd id="bytes">-</dd>
-        <dt>Number of GET requests</dt>
-        <dd id="count">-</dd>
+        <dt>Number of requests</dt>
+        <dd id="request-count">-</dd>
         <dt>Green hosted</dt>
         <dd id="greenHosting">-</dd>
         <dt>Emissions in mgCO2</dt>
@@ -26,23 +26,25 @@
       </dl>
 
       <h2 id="requests-by-group" class="hidden">Requests</h2>
+      <section id="xhr" class="hidden">
+        <details>
+          <summary>
+            <h3>xhr (fetch)</h3>
+          </summary>
+          <div>xhr count: 0</div>
+          <div>xhr bytes: 0</div>
+          <br />
+          <dl></dl>
+        </details>
+      </section>
       <section id="document" class="hidden">
         <details>
           <summary>
             <h3>document</h3>
           </summary>
-          <div>count: 0</div>
-          <div>bytes: 0</div>
-          <dl></dl>
-        </details>
-      </section>
-      <section id="script" class="hidden">
-        <details>
-          <summary>
-            <h3>script</h3>
-          </summary>
-          <div>count: 0</div>
-          <div>bytes: 0</div>
+          <div>document count: 0</div>
+          <div>document bytes: 0</div>
+          <br />
           <dl></dl>
         </details>
       </section>
@@ -51,28 +53,20 @@
           <summary>
             <h3>css</h3>
           </summary>
-          <div>count: 0</div>
-          <div>bytes: 0</div>
+          <div>css count: 0</div>
+          <div>css bytes: 0</div>
+          <br />
           <dl></dl>
         </details>
       </section>
-      <section id="image" class="hidden">
+      <section id="script" class="hidden">
         <details>
           <summary>
-            <h3>image</h3>
+            <h3>js (script)</h3>
           </summary>
-          <div>count: 0</div>
-          <div>bytes: 0</div>
-          <dl></dl>
-        </details>
-      </section>
-      <section id="video" class="hidden">
-        <details>
-          <summary>
-            <h3>video</h3>
-          </summary>
-          <div>count: 0</div>
-          <div>bytes: 0</div>
+          <div>script count: 0</div>
+          <div>script bytes: 0</div>
+          <br />
           <dl></dl>
         </details>
       </section>
@@ -81,8 +75,31 @@
           <summary>
             <h3>font</h3>
           </summary>
-          <div>count: 0</div>
-          <div>bytes: 0</div>
+          <div>font count: 0</div>
+          <div>font bytes: 0</div>
+          <br />
+          <dl></dl>
+        </details>
+      </section>
+      <section id="image" class="hidden">
+        <details>
+          <summary>
+            <h3>image</h3>
+          </summary>
+          <div>image count: 0</div>
+          <div>image bytes: 0</div>
+          <br />
+          <dl></dl>
+        </details>
+      </section>
+      <section id="video" class="hidden">
+        <details>
+          <summary>
+            <h3>media</h3>
+          </summary>
+          <div>video count: 0</div>
+          <div>video bytes: 0</div>
+          <br />
           <dl></dl>
         </details>
       </section>
@@ -91,10 +108,14 @@
           <summary>
             <h3>other</h3>
           </summary>
-          <div>count: 0</div>
-          <div>bytes: 0</div>
+          <div>other count: 0</div>
+          <div>other bytes: 0</div>
+          <br />
           <dl></dl>
         </details>
+      </section>
+      <section id="failed-requests">
+        <div></div>
       </section>
     </main>
     <aside>

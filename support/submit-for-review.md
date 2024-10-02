@@ -6,15 +6,19 @@
 
 ### Title from package
 
-Page Validation
+Emissions tracker by People & Code
 
 ### Summary from package
 
-CO2 emissions for current page
+Track emissions from page requests in real time.
 
 ### Description
 
-Sustainability report: summary of page size, hosting and emissions measured in mg/CO2.
+This extension summarises data received, their associated carbon dioxide emissions, and whether or not the site is hosted renewably. A summary of requests is broken down by content type.
+
+Emissions data are provided by The Green Web Foundation.
+
+Emissions Tracker is part of a suite of free, open-source tools made by People & Code, a consultancy specialising in web accessibility and sustainability.
 
 ### Category
 
@@ -28,7 +32,7 @@ English (United Kingdom)
 
 ### Single purpose description
 
-Calculate page greenhouse gas emissions
+Track emissions from page requests in real-time.
 
 ### activeTab justification
 
@@ -37,18 +41,6 @@ Justification: This permission is necessary to access and analyse the requests m
 ### sidePanel justification
 
 Justification: This permission is required to open and display the side panel where we show the calculated greenhouse gas emissions. Usage: The side panel is only opened when you click on the extension icon, giving you control over when to view the schema.
-
-### webRequest justification
-
-Justification: This permission enables us to add and remove listeners on individual requests (using chrome.webRequest.onCompleted) in the current tab.
-
-Usage: Our scripts run only when you activate the extension on a specific page. They do not run in the background or on pages where you haven't initiated the extension.
-
-### webNavigation justification (TBC)
-
-Justification: This permission enables us to know when to start listening for requests (chrome.webNavigation.onBeforeNavigate) and when to stop and remove listeners (chrome.webNavigation.onCompleted) in the current tab.
-
-Usage: Our scripts run only when you activate the extension on a specific page. They do not run in the background or on pages where you haven't initiated the extension.
 
 ### scripting justification
 
@@ -61,6 +53,18 @@ Usage: Our scripts run only when you activate the extension on a specific page. 
 Justification: This permission enables us to add listeners when the current tab page has loaded (chrome.tabs.onUpdated, "complete" status)and to remove them when the tab is removed (chrome.tabs.onRemoved).
 
 Usage: The script runs only when a user activates the extension on a specific page. It does not run in the background or on pages where you haven't initiated the extension.
+
+### webRequest justification
+
+Justification: This permission enables us to add and remove listeners on individual requests (using chrome.webRequest.onCompleted) in the current tab.
+
+Usage: Our scripts run only when you activate the extension on a specific page. They do not run in the background or on pages where you haven't initiated the extension.
+
+### storage justification
+
+Justification: This permission is required to store request data prior to processing.
+
+Usage: requests per page or domain are stored temporarily. They are deleted when the user visits a new site or reloads the current page (tab).
 
 ### Host permission justification
 
@@ -76,7 +80,7 @@ No
 
 None
 
-### I certify that the following disclosures are true:
+### I certify that the following disclosures are true
 
 All 3 certified
 

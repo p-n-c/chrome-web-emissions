@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Emissions tracker",
+  "name": "Emissions Tracker by People & Code",
   "version": "0.0.0.1",
-  "description": "Tracking CO2 emissions associated with the current page",
+  "description": "Track emissions from page requests in real-time.",
   "permissions": [
     "activeTab",
     "sidePanel",

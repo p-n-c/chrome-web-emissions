@@ -9,18 +9,16 @@ document.addEventListener('DOMContentLoaded', () => {
       image: document.getElementById('image'),
       video: document.getElementById('video'),
       font: document.getElementById('font'),
+      xhr: document.getElementById('xhr'),
       other: document.getElementById('other'),
     },
   }
 
+  let url = ''
   let requests = new Set()
   let currentKey = ''
-  let counts = Object.fromEntries(
-    Object.keys(elements.sections).map((key) => [key, 0])
-  )
-  let typeBytes = Object.fromEntries(
-    Object.keys(elements.sections).map((key) => [key, 0])
-  )
+  let requestCount = 0
+  let failedRequests = 0
 
   const showSummaryData = (id, value) => {
     if (id === 'data') return
@@ -29,30 +27,31 @@ document.addEventListener('DOMContentLoaded', () => {
     if (element) element.textContent = displayValue
   }
 
-  const clearSection = (selector) => {
-    const element = document.querySelector(selector)
-    if (element) element.innerHTML = ''
-    else console.warn(`${selector} does not have a corresponding element`)
+  const resetSection = (type) => {
+    const element = document.querySelector(`#${type} dl`)
+    if (element) {
+      element.innerHTML = ''
+      const aggregates = document.querySelectorAll(`#${type} div`)
+      aggregates[0].textContent = `${type} count: 0`
+      aggregates[1].textContent = `${type} kilobytes: 0`
+    } else {
+      console.warn(`${type} does not have a corresponding element`)
+    }
   }
 
   const resetPanelDisplay = () => {
-    Object.keys(elements.sections).forEach((section) => {
-      clearSection(`#${section} dl`)
-      const aggregates = document.querySelectorAll(`#${section} div`)
-      aggregates[0].textContent = 'count: 0'
-      aggregates[1].textContent = 'kilobytes: 0'
+    Object.keys(elements.sections).forEach((type) => {
+      resetSection(type)
     })
     requests.clear()
+    requestCount = 0
     currentKey = ''
-    counts = Object.fromEntries(
-      Object.keys(elements.sections).map((key) => [key, 0])
-    )
-    typeBytes = Object.fromEntries(
-      Object.keys(elements.sections).map((key) => [key, 0])
-    )
+    failedRequests = 0
+
+    document.querySelector('#failed-requests > div').innerText = ''
   }
 
-  const updateSection = (type, request) => {
+  const populateSection = (type, requests) => {
     const section = elements.sections[type]
     if (!section) return
 
@@ -61,66 +60,83 @@ document.addEventListener('DOMContentLoaded', () => {
     const bytes = section.querySelectorAll('div')[1]
     const dl = section.querySelector('dl') || document.createElement('dl')
 
-    const dt = document.createElement('dt')
-    const dd = document.createElement('dd')
-    const dd_div1 = document.createElement('div')
-    const dd_div2 = document.createElement('div')
+    // Clear previous entries
+    resetSection(type)
 
-    // Add request url
-    dt.textContent = request.url
+    // Add total count and bytes per type
+    counter.textContent = `${type} count: ${requests.length}`
+    bytes.textContent = `${type} kilobytes: ${(requests.reduce((acc, curr) => acc + curr.bytes, 0) / 1000).toFixed(2)}`
 
-    // Add request bytes
-    dd_div1.textContent = request.bytes
-    dd_div2.textContent = request.uncompressedBytes
+    requests.forEach((request) => {
+      if (currentKey !== request.key) {
+        currentKey = request.key
+      }
 
-    dd.append(dd_div1, dd_div2)
-    dl.append(dt, dd)
+      const dt = document.createElement('dt')
+      const dd = document.createElement('dd')
+      const dd_div1 = document.createElement('div')
+      const dd_div2 = document.createElement('div')
 
-    details.append(dl)
+      // Add request url
+      dt.textContent = request.url
 
-    // Update summary data (count and kilobytes)
-    counts[type]++
-    counter.textContent = `count: ${counts[type]}`
-    typeBytes[type] = typeBytes[type] + request.bytes
-    bytes.textContent = `kilobytes: ${(typeBytes[type] / 1000).toFixed(2)}`
+      // Add bytes per request
+      dd_div1.textContent = request.bytes
+      dd_div2.textContent = request.uncompressedBytes
+
+      dd.append(dd_div1, dd_div2)
+      dl.append(dt, dd)
+
+      details.append(dl)
+    })
   }
 
   chrome.runtime.onMessage.addListener((message) => {
     if (message.action === 'url-changed' || message.action === 'url-reloaded') {
       resetPanelDisplay()
+      if (message.url !== url) {
+        url = message.url
+      }
     }
 
     if (message.action === 'network-traffic') {
       // Show summary data
-      Object.entries(message.data).forEach(([key, value]) =>
-        showSummaryData(key, value)
-      )
-
-      // Show request details categories
-      document.querySelector('.hidden')?.classList.remove('hidden')
-
-      try {
-        Object.entries(message.data.data.groupedByType).forEach(
-          ([type, value]) => {
-            if (!value?.length) return
-
-            value.forEach((request) => {
-              if (currentKey !== request.key) {
-                currentKey = request.key
-              }
-              if (!requests.has(request?.url)) {
-                updateSection(type, request)
-                requests.add(request.url)
-              }
-            })
-          }
+      if (message.data.status === 200) {
+        Object.entries(message.data).forEach(([key, value]) =>
+          showSummaryData(key, value)
         )
-      } catch (error) {
-        console.error('Error processing network traffic:', error)
-      }
 
-      // Hide visitor notification to reload the page
-      elements.notification.style.display = 'none'
+        // Show request details categories
+        document.querySelector('.hidden')?.classList.remove('hidden')
+
+        // Add counts from each type to the total
+        requestCount = message.data.data.groupedByTypeBytes.reduce(
+          (prevType, currType) => {
+            return prevType + currType.count
+          },
+          0
+        )
+
+        // Update total request count
+        document.getElementById('request-count').innerText = requestCount
+
+        try {
+          Object.entries(message.data.data.groupedByType).forEach(
+            ([type, value]) => {
+              populateSection(type, value)
+            }
+          )
+        } catch (error) {
+          console.error('Error processing network traffic:', error)
+        }
+
+        // Hide visitor notification to reload the page
+        elements.notification.style.display = 'none'
+      } else {
+        failedRequests++
+        document.querySelector('#failed-requests > div').innerText =
+          `There were ${failedRequests} failed requests.`
+      }
     }
   })
 })

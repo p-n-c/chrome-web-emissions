@@ -26,7 +26,6 @@ chrome.action.onClicked.addListener((tab) => {
 
 // Update network traffic
 function sendMessageToSidePanel(data) {
-  console.log('sendMessageToSidePanel: ', data)
   chrome.sidePanel.getOptions({}, (options) => {
     if (options.enabled) {
       chrome.runtime.sendMessage({
@@ -41,33 +40,43 @@ function sendMessageToSidePanel(data) {
 
 // Handle network requests (triggered by page load)
 const handleRequest = async (details) => {
-  // Ensure it's a page request and not an extension request
-  if (details.tabId !== -1) {
-    const { url, initiator } = details
+  const activeTab = await getCurrentTab()
 
-    // Exclude, for example, wss
+  const isActiveTab = activeTab?.id === details.tabId
+
+  // Ensure it's a request associated with the current tab (page)
+  if (isActiveTab) {
+    const { url, initiator, method, type } = details
+
+    // Implicitly exclude, for example, wss
     const permittedSchema = ['http:', 'https:']
 
-    const response = await fetch(url)
-    const urlObject = new URL(response.url)
-    const scheme = urlObject.protocol // This will return 'https:' or 'http:'
+    let response, scheme
+
+    try {
+      response = await fetch(url)
+      scheme = new URL(response.url)?.protocol
+    } catch (e) {
+      console.log(e)
+    }
 
     if (permittedSchema.includes(scheme)) {
       const clonedResponse = response.clone()
+
       const responseDetails = await getResponseDetails(
         clonedResponse,
-        'browser'
+        'browser',
+        method,
+        type,
+        initiator
       )
-      const activeTab = await getCurrentTab()
 
-      const isActiveTab = activeTab?.id === details.tabId
-
-      if (isActiveTab && responseDetails) {
+      if (responseDetails) {
         const key = `${details.tabId}:${activeTab.url}`
         responseDetails.key = key
 
         // Save request details to the service worker application IndexedDB database
-        await saveNetworkTraffic(responseDetails)
+        await saveNetworkTraffic({ ...responseDetails, method, type })
 
         const options = {
           hostingOptions: {
@@ -88,7 +97,21 @@ const handleRequest = async (details) => {
           mgCO2,
           emissions,
           data,
+          status: response.status,
         })
+      } else {
+        if (response.status !== 200) {
+          sendMessageToSidePanel({
+            url: response.url,
+            bytes: 0,
+            count: 0,
+            greenHosting: false,
+            mgCO2: 0,
+            emissions: 0,
+            data: null,
+            status: response.status,
+          })
+        }
       }
     }
   }
@@ -99,7 +122,7 @@ chrome.webRequest.onCompleted.addListener(
   { urls: ['<all_urls>'] } // Listen for all URLs
 )
 
-chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tabs) => {
   if (changeInfo.url) {
     chrome.runtime.sendMessage({
       action: 'url-changed',
@@ -111,7 +134,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
   } else if (changeInfo?.status === 'loading') {
     chrome.runtime.sendMessage({
       action: 'url-reloaded',
-      url: changeInfo.url,
+      url: tabs.url,
       tabId,
     })
     // Clear the service worker application IndexedDB data
