@@ -32,7 +32,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const showSummaryData = (id, value) => {
     if (id === 'data') return
-    const displayValue = id === 'bytes' ? formatBytes(value) : value
+    const displayValue =
+      id === 'bytes' || id === 'mgCO2' ? formatBytes(value) : value
     const element = document.getElementById(id)
     if (element) element.textContent = displayValue
   }
