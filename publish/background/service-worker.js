@@ -4,6 +4,7 @@ import {
   getResponseDetails,
   saveNetworkTraffic,
   getNetworkTraffic,
+  clearNetworkTraffic,
 } from './emissions.js'
 
 const getCurrentTab = async () => {
@@ -140,7 +141,10 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tabs) => {
 let dpr
 
 chrome.runtime.onMessage.addListener((message) => {
-  if (message.type === 'dpr_update') {
+  if (message.type === 'dpr-update') {
     dpr = message.dpr
+  }
+  if (message.type === 'reset-emissions') {
+    clearNetworkTraffic()
   }
 })

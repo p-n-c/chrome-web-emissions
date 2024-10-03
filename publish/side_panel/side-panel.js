@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const dpr = window.devicePixelRatio
 
   // Send the DPR to the service worker
-  chrome.runtime.sendMessage({ type: 'dpr_update', dpr: dpr })
+  chrome.runtime.sendMessage({ type: 'dpr-update', dpr: dpr })
 
   const elements = {
     notification: document.getElementById('notification'),
@@ -27,10 +27,11 @@ document.addEventListener('DOMContentLoaded', () => {
   let failedRequests = 0
 
   const formatValue = (value) => {
-    return (value / 1000).toFixed(2)
+    console.log('value:', value)
+    return isNaN(value) ? value : (value / 1000).toFixed(2)
   }
 
-  const showSummaryData = (id, value) => {
+  const setSummaryData = (id, value) => {
     if (id === 'data') return
     const displayValue =
       id === 'bytes' || id === 'mgCO2' ? formatValue(value) : value
@@ -51,6 +52,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const resetPanelDisplay = () => {
+    // Reset summary values
+    ;['url', 'bytes', 'request-count', 'greenHosting', 'mgCO2'].forEach((id) =>
+      setSummaryData(id, '-')
+    )
+
+    // Reset request by type sections
     Object.keys(elements.sections).forEach((type) => {
       resetSection(type)
     })
@@ -59,6 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
     currentKey = ''
     failedRequests = 0
 
+    // Reset failed requests
     document.querySelector('#failed-requests > div').innerText = ''
   }
 
@@ -114,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Show summary data
       if (message.data.status === 200) {
         Object.entries(message.data).forEach(([key, value]) =>
-          showSummaryData(key, value)
+          setSummaryData(key, value)
         )
 
         // Show request details categories
@@ -150,4 +158,11 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   })
+
+  document
+    .getElementById('reset-emissions-btn')
+    .addEventListener('click', () => {
+      chrome.runtime.sendMessage({ type: 'reset-emissions' })
+      resetPanelDisplay()
+    })
 })

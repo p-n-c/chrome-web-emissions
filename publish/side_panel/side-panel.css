@@ -32,9 +32,10 @@ h3 {
 }
 
 button {
-  padding: var(--d);
+  padding: calc(var(--d) * 0.5);
+  border: 1px solid var(--line-colour);
   border-radius: 4px;
-  font-size: 1.1rem;
+  text-wrap: balance;
 
   &#notification {
     color: var(--fg-colour);
