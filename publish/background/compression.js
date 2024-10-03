@@ -247,7 +247,7 @@ const compressionMatrix = {
       },
       {
         sizeThreshold: Infinity,
-        compressionRatio: compressionRates.br.find((r) => r.level === 4).rate,
+        compressionRatio: compressionRates.br.find((r) => r.level === 3).rate,
       },
     ],
     gzip: [
