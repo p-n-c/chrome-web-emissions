@@ -67,7 +67,7 @@ const handleRequest = async (details) => {
         'browser',
         method,
         type,
-        initiator
+        dpr
       )
 
       if (responseDetails) {
@@ -134,5 +134,13 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tabs) => {
       url: tabs.url,
       tabId,
     })
+  }
+})
+
+let dpr
+
+chrome.runtime.onMessage.addListener((message) => {
+  if (message.type === 'dpr_update') {
+    dpr = message.dpr
   }
 })

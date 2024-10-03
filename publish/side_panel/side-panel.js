@@ -1,5 +1,11 @@
 /* eslint-disable no-undef */
 document.addEventListener('DOMContentLoaded', () => {
+  // Capture the Device Pixel Ratio (DPR)
+  const dpr = window.devicePixelRatio
+
+  // Send the DPR to the service worker
+  chrome.runtime.sendMessage({ type: 'dpr_update', dpr: dpr })
+
   const elements = {
     notification: document.getElementById('notification'),
     sections: {

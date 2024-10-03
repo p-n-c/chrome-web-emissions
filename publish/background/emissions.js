@@ -6,6 +6,7 @@ import {
   getHostingOptions,
   groupByType,
   groupByTypeBytes,
+  getDPRMultiplier,
 } from './utils.js'
 
 const DB = 'emissionsDB'
@@ -155,13 +156,7 @@ const processResponses = (responses) => {
   }
 }
 
-export const getResponseDetails = async (
-  response,
-  env,
-  method,
-  type,
-  initiator
-) => {
+export const getResponseDetails = async (response, env, method, type, dpr) => {
   const acceptedStatuses = [200, 204, 302, 303, 304]
   const status = response.status
 
@@ -188,7 +183,7 @@ export const getResponseDetails = async (
     // This √2 factor often comes into play with DPR calculations because it represents the scaling factor for linear dimensions (width or height) when the total pixel count is doubled.
     // The request response is reporting the full, physical pixel dimensions of the image.
     // DevTools is reporting the logical pixel dimensions, which are scaled down by a factor related to the DPR.
-    contentLength = contentLength * 0.707
+    contentLength = contentLength * getDPRMultiplier(dpr)
   }
 
   const uncompressedBytes = buffer.byteLength
