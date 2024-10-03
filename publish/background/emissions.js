@@ -27,13 +27,22 @@ const getBytes = ({
 
 const openDatabase = async () => {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB, 1)
+    const request = indexedDB.open(DB, 4) // DB instance stands at 4 (reflects required indices)
 
     request.onupgradeneeded = (event) => {
       const db = event.target.result
       if (!db.objectStoreNames.contains(STORE)) {
-        // Use auto generated id` as the record key
-        db.createObjectStore(STORE, { keyPath: 'id', autoIncrement: true })
+        const objectStore = db.createObjectStore(STORE, {
+          keyPath: 'id',
+          autoIncrement: true,
+        })
+        objectStore.createIndex('url', 'url', { unique: true }) // Create the 'url' index
+      } else {
+        // If the store exists but the index doesn't, create the index
+        const store = event.target.transaction.objectStore(STORE)
+        if (!store.indexNames.contains('url')) {
+          store.createIndex('url', 'url', { unique: true })
+        }
       }
     }
 
@@ -227,9 +236,31 @@ export const saveNetworkTraffic = async (record) => {
   const tx = db.transaction(STORE, 'readwrite')
   const emissions = tx.objectStore(STORE)
 
-  await emissions.add(record)
+  const index = emissions.index('url') // Use the 'url' index
+  const request = index.get(record.url) // Unique request url
 
-  db.close()
+  request.onsuccess = function (event) {
+    if (event.target.result) {
+      // Record exists, update it
+      emissions.put({ ...event.target.result, ...record })
+    } else {
+      // Record doesn't exist, add it
+      emissions.add(record)
+    }
+  }
+
+  request.onerror = function () {
+    console.error('Error searching for record')
+  }
+
+  // Close database after transaction completes
+  tx.oncomplete = function () {
+    db.close()
+  }
+
+  tx.onerror = function (event) {
+    console.error('Transaction failed: ', event.target.error)
+  }
 }
 
 export const getNetworkTraffic = async (key, url, options) => {

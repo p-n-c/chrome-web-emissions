@@ -4,7 +4,6 @@ import {
   getResponseDetails,
   saveNetworkTraffic,
   getNetworkTraffic,
-  clearNetworkTraffic,
 } from './emissions.js'
 
 const getCurrentTab = async () => {
@@ -129,15 +128,11 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tabs) => {
       url: changeInfo.url,
       tabId,
     })
-    // Clear the service worker application IndexedDB data
-    clearNetworkTraffic()
   } else if (changeInfo?.status === 'loading') {
     chrome.runtime.sendMessage({
       action: 'url-reloaded',
       url: tabs.url,
       tabId,
     })
-    // Clear the service worker application IndexedDB data
-    clearNetworkTraffic()
   }
 })
