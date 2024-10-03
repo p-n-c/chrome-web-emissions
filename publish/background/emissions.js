@@ -1,4 +1,4 @@
-import { co2_default, hosting_default } from './tgwf-co2.js'
+import { co2, hosting } from './tgwf/index.js'
 import { getCompressedSize } from './compression.js'
 import {
   format,
@@ -83,8 +83,8 @@ const hasGreenWebHost = async (hostingOptions) => {
     const { domain } = hostingOptions
     const { options } = hostingOptions
     return (await options)
-      ? hosting_default.check(domain, options)
-      : hosting_default.check(domain)
+      ? hosting.check(domain, options)
+      : hosting.check(domain)
   } catch (e) {
     console.error('Error checking green status:', e)
     throw e
@@ -117,7 +117,7 @@ const output = ({
 }
 
 const getEmissions = async ({ bytes, model = '1byte', hostingOptions }) => {
-  const emissions = new co2_default(model)
+  const emissions = new co2(model)
 
   try {
     const forceGreen = hostingOptions?.options?.forceGreen === true
