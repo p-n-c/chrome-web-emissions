@@ -58,12 +58,12 @@ section {
 
   dd {
     & div:first-child::before {
-      content: 'bytes: ';
+      content: 'kBs: ';
       font-weight: bold;
     }
 
     & div:last-child::before {
-      content: 'uncompressed bytes: ';
+      content: 'uncompressed kBs: ';
       font-weight: bold;
     }
   }
