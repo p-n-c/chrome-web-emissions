@@ -98,6 +98,7 @@ const handleRequest = async (details) => {
           emissions,
           data,
           status: response.status,
+          type,
         })
       } else {
         if (response.status !== 200) {
@@ -110,6 +111,7 @@ const handleRequest = async (details) => {
             emissions: 0,
             data: null,
             status: response.status,
+            type,
           })
         }
       }

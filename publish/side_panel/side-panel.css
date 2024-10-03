@@ -1,4 +1,5 @@
 :root {
+  --bg-colour: white;
   --fg-colour: black;
   --line-colour: lightgrey;
   --accent-colour: orange;
@@ -6,8 +7,16 @@
 }
 
 body {
-  height: 100vh;
-  padding: var(--d);
+  padding: var(--d) var(--d) 0 var(--d);
+  position: relative;
+}
+
+main {
+  padding-bottom: calc(var(--d) * 4);
+}
+
+aside {
+  margin-top: calc(var(--d) * -4);
 }
 
 h1 {
@@ -32,6 +41,7 @@ h3 {
 }
 
 button {
+  line-height: 1.4;
   padding: calc(var(--d) * 0.5);
   border: 1px solid var(--line-colour);
   border-radius: 4px;
@@ -41,6 +51,13 @@ button {
     color: var(--fg-colour);
     background-color: var(--accent-colour);
   }
+}
+
+a {
+  color: var(--fg-colour);
+  border-bottom: 1px solid var(--fg-colour);
+  padding-bottom: calc(var(--d) * 0.25);
+  text-decoration: none;
 }
 
 dt:not(details *) {
@@ -78,15 +95,25 @@ section:last-of-type dl {
   border-bottom: none;
 }
 
-footer {
-  padding: calc(var(--d) * 2) 0;
+ul {
+  margin-block: 0;
+  padding: 0 var(--d);
 }
 
-a {
-  color: var(--fg-colour);
-  border-bottom: 1px solid var(--fg-colour);
-  padding-bottom: calc(var(--d) * 0.25);
-  text-decoration: none;
+li {
+  list-style-type: square;
+  line-height: 1.6;
+}
+
+footer {
+  position: fixed;
+  left: var(--d);
+  bottom: 0;
+  width: 100%;
+  height: calc(var(--d) * 4);
+  background-color: var(--bg-colour);
+  display: flex;
+  align-items: center;
 }
 
 .hidden {

@@ -1,4 +1,6 @@
 /* eslint-disable no-undef */
+
+import { mapRequestTypeToType } from '../background/utils.js'
 document.addEventListener('DOMContentLoaded', () => {
   // Capture the Device Pixel Ratio (DPR)
   const dpr = window.devicePixelRatio
@@ -24,14 +26,15 @@ document.addEventListener('DOMContentLoaded', () => {
   let requests = new Set()
   let currentKey = ''
   let requestCount = 0
-  let failedRequests = 0
+  let failedRequests = new Set()
+
+  const failedRequestsSection = document.getElementById('failed-requests')
 
   const formatValue = (value) => {
-    console.log('value:', value)
     return isNaN(value) ? value : (value / 1000).toFixed(2)
   }
 
-  const setSummaryData = (id, value) => {
+  const populateSummary = (id, value) => {
     if (id === 'data') return
     const displayValue =
       id === 'bytes' || id === 'mgCO2' ? formatValue(value) : value
@@ -39,38 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (element) element.textContent = displayValue
   }
 
-  const resetSection = (type) => {
-    const element = document.querySelector(`#${type} dl`)
-    if (element) {
-      element.innerHTML = ''
-      const aggregates = document.querySelectorAll(`#${type} div`)
-      aggregates[0].textContent = `${type} count: 0`
-      aggregates[1].textContent = `${type} kilobytes: 0`
-    } else {
-      console.warn(`${type} does not have a corresponding element`)
-    }
-  }
-
-  const resetPanelDisplay = () => {
-    // Reset summary values
-    ;['url', 'bytes', 'request-count', 'greenHosting', 'mgCO2'].forEach((id) =>
-      setSummaryData(id, '-')
-    )
-
-    // Reset request by type sections
-    Object.keys(elements.sections).forEach((type) => {
-      resetSection(type)
-    })
-    requests.clear()
-    requestCount = 0
-    currentKey = ''
-    failedRequests = 0
-
-    // Reset failed requests
-    document.querySelector('#failed-requests > div').innerText = ''
-  }
-
-  const populateSection = (type, requests) => {
+  const populateRequestsByType = (type, requests) => {
     const section = elements.sections[type]
     if (!section) return
 
@@ -80,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const dl = section.querySelector('dl') || document.createElement('dl')
 
     // Clear previous entries
-    resetSection(type)
+    resetRequestsByType(type)
 
     // Add total count and bytes per type
     counter.textContent = `${type} count: ${requests.length}`
@@ -110,6 +82,66 @@ document.addEventListener('DOMContentLoaded', () => {
     })
   }
 
+  const populateFailedRequests = (url, type) => {
+    // Convert request type to type
+    const resourceType = mapRequestTypeToType(type)
+    // Add the failed request url to the set
+    failedRequests.add({ url, type: resourceType })
+
+    // Show failed requests
+    failedRequestsSection.classList.remove('hidden')
+
+    // Text summary
+    failedRequestsSection.querySelector('div').innerText =
+      `There were ${failedRequests.size} failed requests.`
+
+    // Get the list
+    const ul = failedRequestsSection.querySelector('ul')
+
+    // Clear the list
+    ul.innerHTML = ''
+
+    // We populate the list afresh each time to avoid duplicates
+    failedRequests.forEach((fr) => {
+      const li = document.createElement('li')
+      li.innerText = `${fr.type}: ${fr.url}`
+      ul.appendChild(li)
+    })
+  }
+
+  const resetRequestsByType = (type) => {
+    const dl = document.querySelector(`#${type} dl`)
+    if (dl) {
+      dl.innerHTML = ''
+      const aggregates = document.querySelectorAll(`#${type} div`)
+      aggregates[0].textContent = `${type} count: 0`
+      aggregates[1].textContent = `${type} kilobytes: 0`
+    } else {
+      console.warn(`${type} does not have a corresponding element`)
+    }
+  }
+
+  const resetPanelDisplay = () => {
+    // Reset summary values
+    ;['url', 'bytes', 'request-count', 'greenHosting', 'mgCO2'].forEach((id) =>
+      populateSummary(id, '-')
+    )
+
+    // Reset request by type sections
+    Object.keys(elements.sections).forEach((type) => {
+      resetRequestsByType(type)
+    })
+    requests.clear()
+    requestCount = 0
+    currentKey = ''
+    failedRequests.clear()
+
+    // Reset failed requests
+    failedRequestsSection.classList.add('hidden')
+    failedRequestsSection.querySelector('div').innerText = ''
+    failedRequestsSection.querySelector('ul').innerHTML = ''
+  }
+
   chrome.runtime.onMessage.addListener((message) => {
     if (message.action === 'url-changed' || message.action === 'url-reloaded') {
       resetPanelDisplay()
@@ -119,14 +151,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (message.action === 'network-traffic') {
-      // Show summary data
+      // Update summary and requests
       if (message.data.status === 200) {
         Object.entries(message.data).forEach(([key, value]) =>
-          setSummaryData(key, value)
+          populateSummary(key, value)
         )
 
         // Show request details categories
-        document.querySelector('.hidden')?.classList.remove('hidden')
+        document
+          .querySelector('.hidden:not(#failed-requests)')
+          ?.classList.remove('hidden')
 
         // Add counts from each type to the total
         requestCount = message.data.data.groupedByTypeBytes.reduce(
@@ -142,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
           Object.entries(message.data.data.groupedByType).forEach(
             ([type, value]) => {
-              populateSection(type, value)
+              populateRequestsByType(type, value)
             }
           )
         } catch (error) {
@@ -152,9 +186,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Hide visitor notification to reload the page
         elements.notification.style.display = 'none'
       } else {
-        failedRequests++
-        document.querySelector('#failed-requests > div').innerText =
-          `There were ${failedRequests} failed requests.`
+        // Update failed requests
+        populateFailedRequests(message.data.url, message.data.type)
       }
     }
   })

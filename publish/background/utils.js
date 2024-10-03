@@ -109,12 +109,27 @@ export const groupByTypeBytes = (groupedByType) => {
   return groupedByTypeBytes
 }
 
-export function getDPRMultiplier(dpr) {
+export const getDPRMultiplier = (dpr) => {
   if (dpr <= 1) {
     // For DPR 1 or lower, no need to adjust the size
     return 1
   } else {
     // Adjust using the square root of the device pixel ratio
     return 1 / Math.sqrt(dpr)
+  }
+}
+
+export const mapRequestTypeToType = (type) => {
+  switch (type) {
+    case 'xmlhttprequest':
+      return 'xhr'
+    case 'stylesheet':
+      return 'css'
+    case 'main_frame':
+    case 'sub_frame':
+    case 'ping':
+      return 'document'
+    default:
+      return type
   }
 }
