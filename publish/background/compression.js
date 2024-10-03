@@ -239,7 +239,7 @@ const compressionMatrix = {
     br: [
       {
         sizeThreshold: 20000,
-        compressionRatio: compressionRates.br.find((r) => r.level === 5).rate,
+        compressionRatio: compressionRates.br.find((r) => r.level === 1).rate,
       },
       {
         sizeThreshold: 100000,
