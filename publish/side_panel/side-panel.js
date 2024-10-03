@@ -26,14 +26,14 @@ document.addEventListener('DOMContentLoaded', () => {
   let requestCount = 0
   let failedRequests = 0
 
-  const formatBytes = (bytes) => {
-    return (bytes / 1000).toFixed(2)
+  const formatValue = (value) => {
+    return (value / 1000).toFixed(2)
   }
 
   const showSummaryData = (id, value) => {
     if (id === 'data') return
     const displayValue =
-      id === 'bytes' || id === 'mgCO2' ? formatBytes(value) : value
+      id === 'bytes' || id === 'mgCO2' ? formatValue(value) : value
     const element = document.getElementById(id)
     if (element) element.textContent = displayValue
   }
@@ -92,8 +92,8 @@ document.addEventListener('DOMContentLoaded', () => {
       dt.textContent = request.url
 
       // Add bytes per request
-      dd_div1.textContent = formatBytes(request.bytes)
-      dd_div2.textContent = formatBytes(request.uncompressedBytes)
+      dd_div1.textContent = formatValue(request.bytes)
+      dd_div2.textContent = formatValue(request.uncompressedBytes)
 
       dd.append(dd_div1, dd_div2)
       dl.append(dt, dd)
