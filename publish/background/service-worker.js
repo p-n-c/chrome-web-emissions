@@ -131,6 +131,8 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tabs) => {
       url: changeInfo.url,
       tabId,
     })
+    console.log('url-changed')
+    clearNetworkTraffic()
   } else if (changeInfo?.status === 'loading') {
     chrome.runtime.sendMessage({
       action: 'url-reloaded',
@@ -149,4 +151,19 @@ chrome.runtime.onMessage.addListener((message) => {
   if (message.type === 'reset-emissions') {
     clearNetworkTraffic()
   }
+})
+
+// When the visitor moves to a different, open tab, we clear the db
+// And send a message to the side panel so that the display can be reset
+chrome.tabs.onActivated.addListener((activeInfo) => {
+  console.log('Tab switched. New active tab ID:', activeInfo.tabId)
+  clearNetworkTraffic()
+  // Fetch details of the new active tab
+  chrome.tabs.get(activeInfo.tabId, (tab) => {
+    console.log('New active tab URL:', tab.url)
+    // Send message to side panel
+    chrome.runtime.sendMessage({
+      action: 'tab-switched',
+    })
+  })
 })

@@ -142,8 +142,14 @@ document.addEventListener('DOMContentLoaded', () => {
     failedRequestsSection.querySelector('ul').innerHTML = ''
   }
 
+  // We need to reset the display in these 3 scenarios
+  // The service worker db is cleared before any of these messages is sent
   chrome.runtime.onMessage.addListener((message) => {
-    if (message.action === 'url-changed' || message.action === 'url-reloaded') {
+    if (
+      message.action === 'url-changed' ||
+      message.action === 'url-reloaded' ||
+      message.action === 'tab-switched'
+    ) {
       resetPanelDisplay()
       if (message.url !== url) {
         url = message.url
