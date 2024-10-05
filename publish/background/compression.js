@@ -131,11 +131,11 @@ const compressionMatrix = {
     gzip: [
       {
         sizeThreshold: 50000,
-        compressionRatio: compressionRates.gzip.find((r) => r.level === 0).rate,
+        compressionRatio: compressionRates.gzip.find((r) => r.level === 9).rate,
       },
       {
         sizeThreshold: 100000,
-        compressionRatio: compressionRates.gzip.find((r) => r.level === 5).rate,
+        compressionRatio: compressionRates.gzip.find((r) => r.level === 9).rate,
       },
       {
         sizeThreshold: Infinity,
