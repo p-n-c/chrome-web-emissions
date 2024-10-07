@@ -1,7 +1,6 @@
 import { co2, hosting } from './tgwf/index.js'
 import { getCompressedSize } from './compression.js'
 import {
-  format,
   getDomainFromURL,
   getHostingOptions,
   groupByType,
@@ -108,7 +107,7 @@ const output = ({
     count: responses.length,
     greenHosting,
     emissions,
-    mgCO2: format({ number: emissions * 1000, maximumFractionDigits: 0 }),
+    mgCO2: emissions * 1000,
     data: {
       groupedByType,
       groupedByTypeBytes,

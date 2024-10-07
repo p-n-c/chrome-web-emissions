@@ -34,13 +34,15 @@ export const format = ({
   minimumFractionDigits = 0,
   maximumFractionDigits = 2,
 }) => {
-  // return number
-  return (
-    number?.toLocaleString(locale, {
-      minimumFractionDigits,
-      maximumFractionDigits,
-    }) || 'n/a'
-  )
+  if (number === 0) return 0
+  if (number === null || number === undefined || isNaN(number)) {
+    return 'n/a'
+  }
+
+  return number.toLocaleString(locale, {
+    minimumFractionDigits,
+    maximumFractionDigits,
+  })
 }
 
 export const getDomainFromURL = (url) => {

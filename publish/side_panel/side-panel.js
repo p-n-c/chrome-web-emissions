@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 
-import { mapRequestTypeToType } from '../background/utils.js'
+import { mapRequestTypeToType, format } from '../background/utils.js'
 
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
@@ -39,14 +39,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const failedRequestsSection = document.getElementById('failed-requests')
 
-  const formatValue = (value) => {
-    return isNaN(value) ? value : (value / 1000).toFixed(2)
-  }
-
   const populateSummary = (id, value) => {
     if (id === 'data') return
-    const displayValue =
-      id === 'bytes' || id === 'mgCO2' ? formatValue(value) : value
+
+    let displayValue = value
+
+    // convert bytes to kBs and mgs to gs
+    if (id === 'bytes' || id === 'mgCO2') {
+      if (isNaN(value) || value === 0) displayValue = 0
+      displayValue = format({ number: value / 1000 })
+    }
+
     const element = document.getElementById(id)
     if (element) element.textContent = displayValue
   }
@@ -65,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Add total count and bytes per type
     counter.textContent = `${type} count: ${requests.length}`
-    bytes.textContent = `${type} kilobytes: ${(requests.reduce((acc, curr) => acc + curr.bytes, 0) / 1000).toFixed(2)}`
+    bytes.textContent = `${type} kilobytes: ${format({ number: requests.reduce((acc, curr) => acc + curr.bytes, 0) / 1000 })}`
 
     requests.forEach((request) => {
       if (currentKey !== request.key) {
@@ -81,8 +84,8 @@ document.addEventListener('DOMContentLoaded', () => {
       dt.textContent = request.url
 
       // Add bytes per request
-      dd_div1.textContent = formatValue(request.bytes)
-      dd_div2.textContent = formatValue(request.uncompressedBytes)
+      dd_div1.textContent = format({ number: request.bytes })
+      dd_div2.textContent = format({ number: request.uncompressedBytes })
 
       dd.append(dd_div1, dd_div2)
       dl.append(dt, dd)
@@ -152,21 +155,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // We need to reset the display in these 3 scenarios
-  // The service worker db is cleared before any of these messages is sent
+  // The service worker db is cleared before any of these messages is received by the side panel
   chrome.runtime.onMessage.addListener((message) => {
-    if (
-      // message.action === 'url-changed' ||
-      // message.action === 'url-reloaded' ||
-      message.action === 'tab-switched'
-    ) {
+    // If the visitors goes elsewhere, close the side panel
+    if (message.action === 'tab-switched') {
       window.close()
     }
 
-    if (
-      message.action === 'url-changed' ||
-      message.action === 'url-reloaded'
-      // message.action === 'tab-switched'
-    ) {
+    if (message.action === 'url-changed' || message.action === 'url-reloaded') {
       resetPanelDisplay()
       if (message.url !== url) {
         url = message.url
