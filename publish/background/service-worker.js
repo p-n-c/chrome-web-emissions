@@ -62,7 +62,6 @@ const handleRequest = async (details) => {
 
     if (permittedSchema.includes(scheme)) {
       const clonedResponse = response.clone()
-
       const responseDetails = await getResponseDetails(
         clonedResponse,
         'browser',
@@ -119,10 +118,28 @@ const handleRequest = async (details) => {
   }
 }
 
-chrome.webRequest.onCompleted.addListener(
-  handleRequest,
-  { urls: ['<all_urls>'] } // Listen for all URLs
-)
+let webRequestListener = null
+
+function handleWebRequest(details) {
+  handleRequest(details)
+}
+
+function toggleWebRequestListener(isPanelVisible) {
+  if (isPanelVisible && !webRequestListener) {
+    // Enable the listener
+    webRequestListener = handleWebRequest // Assign the function reference
+
+    chrome.webRequest.onCompleted.addListener(webRequestListener, {
+      urls: ['<all_urls>'],
+    })
+    console.log('Web request listener enabled')
+  } else if (!isPanelVisible && webRequestListener) {
+    // Disable the listener
+    chrome.webRequest.onCompleted.removeListener(webRequestListener)
+    webRequestListener = null // Clear the reference
+    console.log('Web request listener disabled')
+  }
+}
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tabs) => {
   if (changeInfo.url) {
@@ -131,7 +148,6 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tabs) => {
       url: changeInfo.url,
       tabId,
     })
-    console.log('url-changed')
     clearNetworkTraffic()
   } else if (changeInfo?.status === 'loading') {
     chrome.runtime.sendMessage({
@@ -145,19 +161,20 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tabs) => {
 let dpr
 
 chrome.runtime.onMessage.addListener((message) => {
-  if (message.type === 'dpr-update') {
+  if (message.type === 'side-panel-dom-loaded') {
     dpr = message.dpr
   }
-  if (message.type === 'reset-emissions') {
-    clearNetworkTraffic()
+  if (message.type === 'panel-visibility') {
+    toggleWebRequestListener(message.isOpen)
   }
 })
 
 // When the visitor moves to a different, open tab, we clear the db
 // And send a message to the side panel so that the display can be reset
-chrome.tabs.onActivated.addListener((activeInfo) => {
+chrome.tabs.onActivated.addListener(async (activeInfo) => {
   console.log('Tab switched. New active tab ID:', activeInfo.tabId)
   clearNetworkTraffic()
+
   // Fetch details of the new active tab
   chrome.tabs.get(activeInfo.tabId, (tab) => {
     console.log('New active tab URL:', tab.url)

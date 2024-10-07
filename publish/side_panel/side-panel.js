@@ -1,12 +1,21 @@
 /* eslint-disable no-undef */
 
 import { mapRequestTypeToType } from '../background/utils.js'
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    chrome.runtime.sendMessage({ type: 'panel-visibility', isOpen: false })
+  } else {
+    chrome.runtime.sendMessage({ type: 'panel-visibility', isOpen: true })
+  }
+})
+
 document.addEventListener('DOMContentLoaded', () => {
   // Capture the Device Pixel Ratio (DPR)
   const dpr = window.devicePixelRatio
 
   // Send the DPR to the service worker
-  chrome.runtime.sendMessage({ type: 'dpr-update', dpr: dpr })
+  chrome.runtime.sendMessage({ type: 'side-panel-dom-loaded', dpr: dpr })
 
   const elements = {
     notification: document.getElementById('notification'),
@@ -146,9 +155,17 @@ document.addEventListener('DOMContentLoaded', () => {
   // The service worker db is cleared before any of these messages is sent
   chrome.runtime.onMessage.addListener((message) => {
     if (
-      message.action === 'url-changed' ||
-      message.action === 'url-reloaded' ||
+      // message.action === 'url-changed' ||
+      // message.action === 'url-reloaded' ||
       message.action === 'tab-switched'
+    ) {
+      window.close()
+    }
+
+    if (
+      message.action === 'url-changed' ||
+      message.action === 'url-reloaded'
+      // message.action === 'tab-switched'
     ) {
       resetPanelDisplay()
       if (message.url !== url) {
