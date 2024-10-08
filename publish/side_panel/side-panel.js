@@ -7,6 +7,8 @@ import {
   getTrackerSummary,
   compareCurrentAndPreviousSummaries,
   handleError,
+  exportJSON,
+  groupRequestsByType,
 } from '../background/utils.js'
 
 document.addEventListener('visibilitychange', () => {
@@ -26,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const resetEmissionsBtn = document.getElementById('reset-emissions-btn')
   const saveEmissionsBtn = document.getElementById('save-emissions-btn')
+  const saveSummaryBtn = document.getElementById('save-summary-btn')
   const isSavedText = document.getElementById('isSaved')
 
   const elements = {
@@ -48,6 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentKey = ''
   let requestCount = 0
   let failedRequests = new Set()
+  let requestsByType = new Set()
 
   const failedRequestsSection = document.getElementById('failed-requests')
 
@@ -69,6 +73,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const populateRequestsByType = (type, requests) => {
     const section = elements.sections[type]
     if (!section) return
+
+    // Save locally for export
+    requestsByType.add({ type, requests })
 
     section.classList.remove('hidden')
 
@@ -160,10 +167,11 @@ document.addEventListener('DOMContentLoaded', () => {
     Object.keys(elements.sections).forEach((type) => {
       resetRequestsByType(type)
     })
-    requests.clear()
     requestCount = 0
     currentKey = ''
+    requests.clear()
     failedRequests.clear()
+    requestsByType.clear()
 
     // Reset failed requests
     failedRequestsSection.classList.add('hidden')
@@ -201,8 +209,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Show request details categories
         document
-          .querySelector('.hidden:not(#failed-requests)')
-          ?.classList.remove('hidden')
+          .querySelectorAll('.hidden:not(#failed-requests)')
+          .forEach((hidden) => hidden?.classList.remove('hidden'))
 
         // Add counts from each type to the total
         requestCount = message.data.data.groupedByTypeBytes.reduce(
@@ -259,5 +267,13 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(getTrackerSummary(url))
       }
     }
+  })
+
+  saveSummaryBtn.addEventListener('click', () => {
+    const json = {
+      summary,
+      data: groupRequestsByType(requestsByType),
+    }
+    exportJSON(json)
   })
 })

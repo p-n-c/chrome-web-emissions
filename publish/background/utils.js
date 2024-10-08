@@ -220,3 +220,49 @@ export const compareCurrentAndPreviousSummaries = (url, summary) => {
 export const handleError = (error, context) => {
   console.error(`Error in ${context}:`, error)
 }
+
+export const exportJSON = (data, filename = 'tracker-summary.json') => {
+  // Step 1: Convert JSON data to a string
+  const jsonStr = JSON.stringify(data, null, 2) // Pretty print with 2 spaces
+
+  // Step 2: Create a Blob from the JSON string
+  const blob = new Blob([jsonStr], { type: 'application/json' })
+
+  // Step 3: Create a temporary link element
+  const link = document.createElement('a')
+
+  // Step 4: Create a URL for the Blob and set it as the href for the link
+  link.href = URL.createObjectURL(blob)
+
+  // Step 5: Set the download attribute with a filename
+  link.download = filename
+
+  // Step 6: Append the link to the body (necessary for Firefox)
+  document.body.appendChild(link)
+
+  // Step 7: Programmatically click the link to trigger the download
+  link.click()
+
+  // Step 8: Remove the link from the document after the download
+  document.body.removeChild(link)
+}
+
+export const groupRequestsByType = (dataSet) => {
+  // Create an object to hold the grouped data
+  const groupedRequests = {}
+
+  // Iterate through the Set
+  dataSet.forEach((item) => {
+    const { type, requests } = item
+
+    // If the type is not already in the object, initialize it as an array
+    if (!groupedRequests[type]) {
+      groupedRequests[type] = []
+    }
+
+    // Append the requests to the corresponding type
+    groupedRequests[type].push(...requests)
+  })
+
+  return groupedRequests
+}
