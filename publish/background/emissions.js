@@ -190,7 +190,7 @@ export const getResponseDetails = async (response, env, method, type, dpr) => {
   const compressedBytes = contentLength ? parseInt(contentLength, 10) : 0
   const resourceType = mapRequestTypeToType(type)
 
-  const { bytes, compressionRatio } = getBytes({
+  const { bytes, compressionRate } = getBytes({
     compressedBytes,
     uncompressedBytes,
     encoding: contentEncoding,
@@ -205,7 +205,7 @@ export const getResponseDetails = async (response, env, method, type, dpr) => {
     bytes,
     encoding: contentEncoding,
     resourceType,
-    compressionRatio,
+    compressionRate,
   }
 }
 
