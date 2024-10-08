@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const resetEmissionsBtn = document.getElementById('reset-emissions-btn')
   const saveEmissionsBtn = document.getElementById('save-emissions-btn')
-  const saveSummaryBtn = document.getElementById('save-summary-btn')
+  const exportSummaryBtn = document.getElementById('export-data-btn')
   const isSavedText = document.getElementById('isSaved')
 
   const elements = {
@@ -269,7 +269,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   })
 
-  saveSummaryBtn.addEventListener('click', () => {
+  exportSummaryBtn.addEventListener('click', () => {
     const json = {
       summary,
       data: groupRequestsByType(requestsByType),
