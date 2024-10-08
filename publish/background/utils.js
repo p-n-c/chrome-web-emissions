@@ -181,6 +181,8 @@ export function convertTimestampToLocalDateTime(timestamp) {
   return date.toLocaleString() // Adjusts for the user's time zone and locale
 }
 
+const safeComparison = (a, b) => (isNaN(a) || isNaN(b) ? 0 : a - b)
+
 export const compareCurrentAndPreviousSummaries = (url, summary) => {
   if (!url) return
 
@@ -191,11 +193,13 @@ export const compareCurrentAndPreviousSummaries = (url, summary) => {
     const summaryRequests = document.getElementById('request-count')
     const summaryEmissions = document.getElementById('mgCO2')
 
+    if (!summaryBytes || !summaryRequests || !summaryEmissions) return
+
     const updateClass = (element, previousValue, currentValue) => {
-      if (previousValue > currentValue) {
+      if (safeComparison(previousValue, currentValue) > 0) {
         element.classList.add('down')
         element.classList.remove('up')
-      } else if (previousValue < currentValue) {
+      } else if (safeComparison(currentValue, previousValue) > 0) {
         element.classList.add('up')
         element.classList.remove('down')
       } else {
@@ -211,4 +215,8 @@ export const compareCurrentAndPreviousSummaries = (url, summary) => {
     )
     updateClass(summaryEmissions, previousSummary.mgCO2, summary.mgCO2)
   }
+}
+
+export const handleError = (error, context) => {
+  console.error(`Error in ${context}:`, error)
 }

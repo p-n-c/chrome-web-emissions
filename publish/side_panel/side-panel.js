@@ -6,6 +6,7 @@ import {
   saveTrackerSummary,
   getTrackerSummary,
   compareCurrentAndPreviousSummaries,
+  handleError,
 } from '../background/utils.js'
 
 document.addEventListener('visibilitychange', () => {
@@ -142,7 +143,10 @@ document.addEventListener('DOMContentLoaded', () => {
       aggregates[0].textContent = `${type} count: 0`
       aggregates[1].textContent = `${type} kilobytes: 0`
     } else {
-      console.warn(`${type} does not have a corresponding element`)
+      handleError(
+        `${type} does not have a corresponding element`,
+        'reset request by type'
+      )
     }
   }
 
@@ -216,8 +220,8 @@ document.addEventListener('DOMContentLoaded', () => {
               populateRequestsByType(type, value)
             }
           )
-        } catch (error) {
-          console.error('Error processing network traffic:', error)
+        } catch (e) {
+          handleError(e, 'processing network traffic')
         }
 
         // Hide visitor notification to reload the page
@@ -227,8 +231,10 @@ document.addEventListener('DOMContentLoaded', () => {
         populateFailedRequests(message.data.url, message.data.type)
       }
 
+      if (message.data.bytes === 0) return
+
       summary = {
-        url: message.data.url,
+        url,
         bytes: message.data.bytes,
         mgCO2: message.data.mgCO2,
         requestCount,

@@ -7,6 +7,8 @@ import {
   clearNetworkTraffic,
 } from './emissions.js'
 
+import { handleError } from './utils.js'
+
 const getCurrentTab = async () => {
   let queryOptions = { active: true, lastFocusedWindow: true }
   let [tab] = await chrome.tabs.query(queryOptions)
@@ -57,7 +59,7 @@ const handleRequest = async (details) => {
       response = await fetch(url)
       scheme = new URL(response.url)?.protocol
     } catch (e) {
-      console.log(e)
+      handleError(e, 'handle request')
     }
 
     if (permittedSchema.includes(scheme)) {
