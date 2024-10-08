@@ -167,6 +167,9 @@ chrome.runtime.onMessage.addListener((message) => {
   if (message.type === 'panel-visibility') {
     toggleWebRequestListener(message.isOpen)
   }
+  if (message.type === 'reset-emissions') {
+    clearNetworkTraffic()
+  }
 })
 
 // When the visitor moves to a different, open tab, we clear the db

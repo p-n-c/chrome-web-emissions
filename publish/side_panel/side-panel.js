@@ -1,6 +1,12 @@
 /* eslint-disable no-undef */
 
-import { mapRequestTypeToType, format } from '../background/utils.js'
+import {
+  mapRequestTypeToType,
+  format,
+  saveTrackerSummary,
+  getTrackerSummary,
+  compareCurrentAndPreviousSummaries,
+} from '../background/utils.js'
 
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
@@ -17,6 +23,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // Send the DPR to the service worker
   chrome.runtime.sendMessage({ type: 'side-panel-dom-loaded', dpr: dpr })
 
+  const resetEmissionsBtn = document.getElementById('reset-emissions-btn')
+  const saveEmissionsBtn = document.getElementById('save-emissions-btn')
+  const isSavedText = document.getElementById('isSaved')
+
   const elements = {
     notification: document.getElementById('notification'),
     sections: {
@@ -31,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
     },
   }
 
+  let summary
   let url = ''
   let requests = new Set()
   let currentKey = ''
@@ -154,6 +165,12 @@ document.addEventListener('DOMContentLoaded', () => {
     failedRequestsSection.classList.add('hidden')
     failedRequestsSection.querySelector('div').innerText = ''
     failedRequestsSection.querySelector('ul').innerHTML = ''
+
+    // Remove arrows that show rise or fall in comparison to previous summary
+    document.querySelectorAll('.up').forEach((up) => up.classList.remove('up'))
+    document
+      .querySelectorAll('.down')
+      .forEach((down) => down.classList.remove('down'))
   }
 
   // We need to reset the display in these 3 scenarios
@@ -193,7 +210,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Update total request count
         document.getElementById('request-count').innerText = requestCount
-
         try {
           Object.entries(message.data.data.groupedByType).forEach(
             ([type, value]) => {
@@ -210,13 +226,32 @@ document.addEventListener('DOMContentLoaded', () => {
         // Update failed requests
         populateFailedRequests(message.data.url, message.data.type)
       }
+
+      summary = {
+        url: message.data.url,
+        bytes: message.data.bytes,
+        mgCO2: message.data.mgCO2,
+        requestCount,
+      }
+      compareCurrentAndPreviousSummaries(url, summary)
     }
   })
 
-  document
-    .getElementById('reset-emissions-btn')
-    .addEventListener('click', () => {
-      chrome.runtime.sendMessage({ type: 'reset-emissions' })
-      resetPanelDisplay()
-    })
+  resetEmissionsBtn.addEventListener('click', () => {
+    chrome.runtime.sendMessage({ type: 'reset-emissions' })
+    resetPanelDisplay()
+  })
+
+  saveEmissionsBtn.addEventListener('click', () => {
+    if (summary) {
+      const isSaved = saveTrackerSummary(summary)
+      if (isSaved) {
+        isSavedText.classList.remove('invisible')
+        setTimeout(() => {
+          isSavedText.classList.add('invisible')
+        }, 2000)
+        console.log(getTrackerSummary(url))
+      }
+    }
+  })
 })

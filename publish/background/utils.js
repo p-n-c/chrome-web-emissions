@@ -146,3 +146,69 @@ export function extractScheme(url) {
     return null
   }
 }
+
+export function saveTrackerSummary(summary) {
+  try {
+    // Convert the summary object to a string for storage
+    const summaryString = JSON.stringify(summary)
+    localStorage.setItem(summary.url, summaryString)
+    console.log('Tracker summary saved successfully.')
+    return true
+  } catch (e) {
+    console.error('Error saving tracker summary:', e)
+    return false
+  }
+}
+
+export function getTrackerSummary(url) {
+  try {
+    const summaryString = localStorage.getItem(url)
+    if (summaryString) {
+      return JSON.parse(summaryString)
+    } else {
+      console.warn('No tracker summary found in localStorage.')
+      return null
+    }
+  } catch (e) {
+    console.error('Error retrieving tracker summary:', e)
+    return null
+  }
+}
+
+export function convertTimestampToLocalDateTime(timestamp) {
+  const date = new Date(timestamp)
+  // Return a formatted string with local date and time
+  return date.toLocaleString() // Adjusts for the user's time zone and locale
+}
+
+export const compareCurrentAndPreviousSummaries = (url, summary) => {
+  if (!url) return
+
+  const previousSummary = getTrackerSummary(url)
+
+  if (previousSummary) {
+    const summaryBytes = document.getElementById('bytes')
+    const summaryRequests = document.getElementById('request-count')
+    const summaryEmissions = document.getElementById('mgCO2')
+
+    const updateClass = (element, previousValue, currentValue) => {
+      if (previousValue > currentValue) {
+        element.classList.add('down')
+        element.classList.remove('up')
+      } else if (previousValue < currentValue) {
+        element.classList.add('up')
+        element.classList.remove('down')
+      } else {
+        element.classList.remove('up', 'down')
+      }
+    }
+
+    updateClass(summaryBytes, previousSummary.bytes, summary.bytes)
+    updateClass(
+      summaryRequests,
+      previousSummary.requestCount,
+      summary.requestCount
+    )
+    updateClass(summaryEmissions, previousSummary.mgCO2, summary.mgCO2)
+  }
+}

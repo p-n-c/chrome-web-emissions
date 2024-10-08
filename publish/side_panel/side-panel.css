@@ -3,6 +3,8 @@
   --fg-colour: black;
   --line-colour: lightgrey;
   --accent-colour: orange;
+  --up: red;
+  --down: green;
   --d: 0.25rem;
 }
 
@@ -12,7 +14,7 @@ body {
 }
 
 main {
-  padding-top: calc(var(--d) * 8);
+  padding-top: calc(var(--d) * 6);
   padding-bottom: calc(var(--d) * 16);
 }
 
@@ -45,6 +47,7 @@ h3 {
 button {
   line-height: 1.4;
   padding: calc(var(--d) * 2);
+  margin-right: calc(var(--d) * 2);
   border: 1px solid var(--line-colour);
   border-radius: 4px;
   text-wrap: balance;
@@ -131,4 +134,21 @@ footer {
 
 .hidden {
   display: none;
+}
+
+.invisible {
+  visibility: hidden;
+}
+
+.up::after {
+  content: '\25B2';
+  padding-left: 5px;
+  padding-left: var(--d);
+  color: var(--up);
+}
+
+.down::after {
+  content: '\25BC';
+  padding-left: var(--d);
+  color: var(--down);
 }
