@@ -58,6 +58,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const section = elements.sections[type]
     if (!section) return
 
+    section.classList.remove('hidden')
+
     const details = section.querySelector('details')
     const counter = section.querySelectorAll('div')[0]
     const bytes = section.querySelectorAll('div')[1]

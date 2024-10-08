@@ -135,3 +135,14 @@ export const mapRequestTypeToType = (type) => {
       return type
   }
 }
+
+export function extractScheme(url) {
+  try {
+    const scheme = new URL(url).protocol
+    // Remove the colon (:) at the end of the protocol (e.g., 'http:')
+    return scheme.replace(':', '')
+  } catch (e) {
+    console.error('Invalid URL:', e.message)
+    return null
+  }
+}
