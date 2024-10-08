@@ -58,6 +58,16 @@ button {
   }
 }
 
+button:hover {
+  border-color: var(--fg-colour);
+  outline: none;
+}
+
+button:active {
+  box-shadow: 0 0 0 2px var(--fg-colour);
+  outline: none;
+}
+
 a {
   color: var(--fg-colour);
   text-decoration: underline;
@@ -136,8 +146,8 @@ footer {
   display: none;
 }
 
-.invisible {
-  visibility: hidden;
+.notification {
+  display: none;
 }
 
 .up::after {

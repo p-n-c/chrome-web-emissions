@@ -4,11 +4,11 @@ import {
   mapRequestTypeToType,
   format,
   saveTrackerSummary,
-  getTrackerSummary,
   compareCurrentAndPreviousSummaries,
   handleError,
   exportJSON,
   groupRequestsByType,
+  toggleNotification,
 } from '../background/utils.js'
 
 document.addEventListener('visibilitychange', () => {
@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const saveEmissionsBtn = document.getElementById('save-emissions-btn')
   const exportSummaryBtn = document.getElementById('export-data-btn')
   const isSavedText = document.getElementById('isSaved')
+  const isResetText = document.getElementById('isReset')
 
   const elements = {
     notification: document.getElementById('notification'),
@@ -251,24 +252,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   })
 
+  // Reset emissions - clear the indexDB database
   resetEmissionsBtn.addEventListener('click', () => {
     chrome.runtime.sendMessage({ type: 'reset-emissions' })
     resetPanelDisplay()
+    toggleNotification(isResetText)
   })
 
+  // Save emissions - to the panel Local storage
   saveEmissionsBtn.addEventListener('click', () => {
     if (summary) {
       const isSaved = saveTrackerSummary(summary)
       if (isSaved) {
-        isSavedText.classList.remove('invisible')
-        setTimeout(() => {
-          isSavedText.classList.add('invisible')
-        }, 2000)
-        console.log(getTrackerSummary(url))
+        toggleNotification(isSavedText)
       }
     }
   })
 
+  // Export data - to a local file
   exportSummaryBtn.addEventListener('click', () => {
     const json = {
       summary,

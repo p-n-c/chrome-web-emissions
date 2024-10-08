@@ -266,3 +266,14 @@ export const groupRequestsByType = (dataSet) => {
 
   return groupedRequests
 }
+
+export const toggleNotification = (
+  textElement,
+  className = 'notification',
+  delay = 2000
+) => {
+  textElement.classList.remove(className)
+  setTimeout(() => {
+    textElement.classList.add(className)
+  }, delay)
+}
