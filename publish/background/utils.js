@@ -28,6 +28,8 @@ const sortBy = ({ arr, prop, dir = 'asc' }) => {
       })
 }
 
+const safeComparison = (a, b) => (isNaN(a) || isNaN(b) ? 0 : a - b)
+
 export const format = ({
   number,
   locale = 'en-GB',
@@ -136,7 +138,7 @@ export const mapRequestTypeToType = (type) => {
   }
 }
 
-export function extractScheme(url) {
+export const extractScheme = (url) => {
   try {
     const scheme = new URL(url).protocol
     // Remove the colon (:) at the end of the protocol (e.g., 'http:')
@@ -147,7 +149,7 @@ export function extractScheme(url) {
   }
 }
 
-export function saveTrackerSummary(summary) {
+export const saveTrackerSummary = (summary) => {
   try {
     // Convert the summary object to a string for storage
     const summaryString = JSON.stringify(summary)
@@ -160,7 +162,7 @@ export function saveTrackerSummary(summary) {
   }
 }
 
-export function getTrackerSummary(url) {
+export const getTrackerSummary = (url) => {
   try {
     const summaryString = localStorage.getItem(url)
     if (summaryString) {
@@ -175,13 +177,11 @@ export function getTrackerSummary(url) {
   }
 }
 
-export function convertTimestampToLocalDateTime(timestamp) {
+export const convertTimestampToLocalDateTime = (timestamp) => {
   const date = new Date(timestamp)
   // Return a formatted string with local date and time
   return date.toLocaleString() // Adjusts for the user's time zone and locale
 }
-
-const safeComparison = (a, b) => (isNaN(a) || isNaN(b) ? 0 : a - b)
 
 export const compareCurrentAndPreviousSummaries = (url, summary) => {
   if (!url) return
