@@ -28,7 +28,7 @@ const getBytes = ({
 
 const openDatabase = async () => {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB, 4) // DB instance stands at 4 (reflects required indices)
+    const request = indexedDB.open(DB, 5) // DB instance stands at 5 (reflects required indices)
 
     request.onupgradeneeded = (event) => {
       const db = event.target.result
@@ -37,12 +37,12 @@ const openDatabase = async () => {
           keyPath: 'id',
           autoIncrement: true,
         })
-        objectStore.createIndex('url', 'url', { unique: true }) // Create the 'url' index
+        objectStore.createIndex('urlAndType', 'urlAndType', { unique: false })
       } else {
         // If the store exists but the index doesn't, create the index
         const store = event.target.transaction.objectStore(STORE)
-        if (!store.indexNames.contains('url')) {
-          store.createIndex('url', 'url', { unique: true })
+        if (!store.indexNames.contains('urlAndType')) {
+          store.createIndex('urlAndType', 'urlAndType', { unique: false })
         }
       }
     }
@@ -167,7 +167,9 @@ export const getResponseDetails = async (response, env, method, type, dpr) => {
   const isBrowser = env === 'browser'
 
   const getHeader = (header) => response.headers.get(header)
-  const getBuffer = async () => response.arrayBuffer()
+  const getBuffer = async () => {
+    return await response.arrayBuffer()
+  }
 
   const url = isBrowser ? response.url : response.url()
   const contentType = getHeader('Content-Type')
@@ -214,8 +216,9 @@ export const saveNetworkTraffic = async (record) => {
   const tx = db.transaction(STORE, 'readwrite')
   const emissions = tx.objectStore(STORE)
 
-  const index = emissions.index('url') // Use the 'url' index
-  const request = index.get(record.url) // Unique request url
+  record.urlAndType = `${record.url}:${record.type}`
+  const index = emissions.index('urlAndType') // Use the 'urlAndType' index
+  const request = index.get(record.urlAndType) // Unique request url
 
   request.onsuccess = function (event) {
     if (event.target.result) {
