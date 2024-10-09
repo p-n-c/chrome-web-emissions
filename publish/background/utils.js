@@ -255,13 +255,24 @@ export const groupRequestsByType = (dataSet) => {
   dataSet.forEach((item) => {
     const { type, requests } = item
 
+    const props = requests.map((r) => {
+      return {
+        url: r.url,
+        bytes: r.bytes,
+        uncompressedBytes: r.uncompressedBytes,
+        contentType: r.contentType,
+        method: r.method,
+        encoding: r.encoding,
+      }
+    })
+
     // If the type is not already in the object, initialize it as an array
     if (!groupedRequests[type]) {
       groupedRequests[type] = []
     }
 
     // Append the requests to the corresponding type
-    groupedRequests[type].push(...requests)
+    groupedRequests[type].push(...props)
   })
 
   return groupedRequests
