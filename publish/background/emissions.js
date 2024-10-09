@@ -6,7 +6,6 @@ import {
   groupByType,
   groupByTypeBytes,
   getDPRMultiplier,
-  mapRequestTypeToType,
 } from './utils.js'
 
 const DB = 'emissionsDB'
@@ -156,7 +155,13 @@ const processResponses = (responses) => {
   }
 }
 
-export const getResponseDetails = async (response, env, method, type, dpr) => {
+export const getResponseDetails = async (
+  response,
+  env,
+  type,
+  resourceType,
+  dpr
+) => {
   const acceptedStatuses = [200, 204, 302, 303, 304]
   const status = response.status
 
@@ -190,7 +195,6 @@ export const getResponseDetails = async (response, env, method, type, dpr) => {
 
   const uncompressedBytes = buffer.byteLength
   const compressedBytes = contentLength ? parseInt(contentLength, 10) : 0
-  const resourceType = mapRequestTypeToType(type)
 
   const { bytes, compressionRate } = getBytes({
     compressedBytes,

@@ -7,7 +7,7 @@ import {
   clearNetworkTraffic,
 } from './emissions.js'
 
-import { handleError } from './utils.js'
+import { handleError, mapRequestTypeToType } from './utils.js'
 
 const getCurrentTab = async () => {
   let queryOptions = { active: true, lastFocusedWindow: true }
@@ -62,13 +62,15 @@ const handleRequest = async (details) => {
       handleError(e, 'handle request')
     }
 
+    const resourceType = mapRequestTypeToType(type)
+
     if (permittedSchema.includes(scheme)) {
       const clonedResponse = response.clone()
       const responseDetails = await getResponseDetails(
         clonedResponse,
         'browser',
-        method,
         type,
+        resourceType,
         dpr
       )
 
@@ -77,7 +79,11 @@ const handleRequest = async (details) => {
         responseDetails.key = key
 
         // Save request details to the service worker application IndexedDB database
-        await saveNetworkTraffic({ ...responseDetails, method, type })
+        await saveNetworkTraffic({
+          ...responseDetails,
+          method,
+          type: responseDetails.resourceType,
+        })
 
         const options = {
           hostingOptions: {
@@ -150,6 +156,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tabs) => {
       url: changeInfo.url,
       tabId,
     })
+    console.log('url-changed')
     clearNetworkTraffic()
   } else if (changeInfo?.status === 'loading') {
     chrome.runtime.sendMessage({
