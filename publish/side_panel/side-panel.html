@@ -130,6 +130,20 @@
           <ul></ul>
         </details>
       </section>
+      <h2 class="hidden">Data</h2>
+      <section id="data" class="hidden">
+        <p>
+          <strong
+            >Why does the tracker report fewer requests than Chrome
+            DevTools?</strong
+          >
+        </p>
+        <p>
+          Chrome DevTools logs resource usage including elements loaded with a
+          data: URL which don't trigger an HTTP request. These resources are
+          therefore excluded.
+        </p>
+      </section>
       <button id="export-data-btn" class="hidden">Export data</button>
     </main>
     <aside>
