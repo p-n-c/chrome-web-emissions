@@ -12,6 +12,8 @@ import {
 } from '../background/utils.js'
 
 document.addEventListener('visibilitychange', () => {
+  // This event will fire when the side panel is opened (!hidden)
+  // This event will fire when the side panel is closed or another tab takes focus (hidden)
   if (document.hidden) {
     chrome.runtime.sendMessage({ type: 'panel-visibility', isOpen: false })
   } else {

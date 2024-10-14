@@ -291,7 +291,7 @@ export const clearNetworkTraffic = async () => {
   const store = tx.objectStore(STORE)
 
   store.clear().onsuccess = function () {
-    console.log(`Object store ${STORE} cleared.`)
+    console.log(`The ${STORE} object store was cleared`)
   }
 
   tx.oncomplete = function () {

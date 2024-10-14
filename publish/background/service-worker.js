@@ -134,18 +134,18 @@ function handleWebRequest(details) {
 
 function toggleWebRequestListener(isPanelVisible) {
   if (isPanelVisible && !webRequestListener) {
-    // Enable the listener
+    // Enable (add) a new listener
     webRequestListener = handleWebRequest // Assign the function reference
 
     chrome.webRequest.onCompleted.addListener(webRequestListener, {
       urls: ['<all_urls>'],
     })
-    console.log('Web request listener enabled')
+    console.log('Web request listener enabled (added)')
   } else if (!isPanelVisible && webRequestListener) {
-    // Disable the listener
+    // Disable (remove) the listener
     chrome.webRequest.onCompleted.removeListener(webRequestListener)
     webRequestListener = null // Clear the reference
-    console.log('Web request listener disabled')
+    console.log('Web request listener disabled (removed)')
   }
 }
 
@@ -156,7 +156,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tabs) => {
       url: changeInfo.url,
       tabId,
     })
-    console.log('url-changed')
+    console.log('The URL changed')
     clearNetworkTraffic()
   } else if (changeInfo?.status === 'loading') {
     chrome.runtime.sendMessage({
@@ -164,16 +164,20 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tabs) => {
       url: tabs.url,
       tabId,
     })
+    console.log('The URL was reloaded (page refresh)')
   }
 })
 
+// Device Pixel Ratio
 let dpr
 
+// We listen to changes in the side panel:
 chrome.runtime.onMessage.addListener((message) => {
   if (message.type === 'side-panel-dom-loaded') {
     dpr = message.dpr
   }
   if (message.type === 'panel-visibility') {
+    // Enable (add), or disable (remove) the web request listener
     toggleWebRequestListener(message.isOpen)
   }
   if (message.type === 'reset-emissions') {
