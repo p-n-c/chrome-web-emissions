@@ -3,14 +3,7 @@
   "name": "Emissions Tracker by People & Code",
   "version": "0.0.0.1",
   "description": "Track emissions from page requests in real-time.",
-  "permissions": [
-    "activeTab",
-    "sidePanel",
-    "scripting",
-    "tabs",
-    "webRequest",
-    "storage"
-  ],
+  "permissions": ["activeTab", "sidePanel", "tabs", "webRequest"],
   "host_permissions": ["<all_urls>"],
   "background": {
     "service_worker": "background/service-worker.js",
