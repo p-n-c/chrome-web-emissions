@@ -11,14 +11,12 @@ import {
   toggleNotification,
 } from '../background/utils.js'
 
-document.addEventListener('visibilitychange', () => {
-  // This event will fire when the side panel is opened (!hidden)
-  // This event will fire when the side panel is closed or another tab takes focus (hidden)
-  if (document.hidden) {
-    chrome.runtime.sendMessage({ type: 'panel-visibility', isOpen: false })
-  } else {
-    chrome.runtime.sendMessage({ type: 'panel-visibility', isOpen: true })
-  }
+// Optionally, you can also add an unload event to detect when the panel is closed
+window.addEventListener('unload', function () {
+  chrome.runtime.sendMessage({
+    type: 'panel-closed',
+    isOpen: false, // Panel is closed
+  })
 })
 
 document.addEventListener('DOMContentLoaded', () => {

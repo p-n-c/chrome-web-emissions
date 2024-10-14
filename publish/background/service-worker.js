@@ -18,6 +18,7 @@ let sidePanelReadyPromise = new Promise((resolve) => {
 
 // Only add this listener **once**
 chrome.runtime.onMessage.addListener((message) => {
+  console.log('Message')
   switch (message.type) {
     case 'side-panel-dom-loaded':
       isSidePanelReady = true
@@ -26,25 +27,22 @@ chrome.runtime.onMessage.addListener((message) => {
       if (resolveSidePanelPromise) {
         resolveSidePanelPromise() // Resolve the existing promise when the side panel is ready
       }
-      break
-
-    case 'panel-visibility':
-      // Enable (add), or disable (remove) the web request listener
-      toggleWebRequestListener(message.isOpen)
+      // Start listening
+      toggleWebRequestListener(true)
       break
 
     case 'reset-emissions':
       clearNetworkTraffic()
       break
 
-    case 'sidepanel-closed':
+    case 'panel-closed':
       isSidePanelReady = false
-      console.log('Service worker: Side panel is closed.')
-
+      toggleWebRequestListener(true)
       // Create a new Promise that will resolve when the side panel is ready again
       sidePanelReadyPromise = new Promise((resolve) => {
         resolveSidePanelPromise = resolve
       })
+      console.log('Service worker: Side panel is closed.')
       break
 
     default:
@@ -214,7 +212,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tabs) => {
 })
 
 // When the visitor moves to a different, open tab, we clear the db
-// And send a message to the side panel so that the display can be reset
+// And disable the side panel
 chrome.tabs.onActivated.addListener(async (activeInfo) => {
   console.log('Tab switched. New active tab ID:', activeInfo.tabId)
   chrome.sidePanel.setOptions({ enabled: false })
