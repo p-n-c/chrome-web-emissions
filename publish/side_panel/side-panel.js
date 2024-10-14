@@ -190,12 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // We need to reset the display in these 3 scenarios
   // The service worker db is cleared before any of these messages is received by the side panel
-  chrome.runtime.onMessage.addListener((message) => {
-    // If the visitors goes elsewhere, close the side panel
-    if (message.action === 'tab-switched') {
-      window.close()
-    }
-
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === 'url-changed' || message.action === 'url-reloaded') {
       resetPanelDisplay()
       if (message.url !== url) {
