@@ -23,12 +23,10 @@ chrome.runtime.onMessage.addListener((message) => {
     case 'side-panel-dom-loaded':
       isSidePanelReady = true
       dpr = message.dpr
-      console.log('Service worker: Side panel is now ready.')
       if (resolveSidePanelPromise) {
         resolveSidePanelPromise() // Resolve the existing promise when the side panel is ready
       }
-      // Start listening
-      toggleWebRequestListener(true)
+      console.log('Service worker: Side panel is now ready.')
       break
 
     case 'reset-emissions':
@@ -37,7 +35,7 @@ chrome.runtime.onMessage.addListener((message) => {
 
     case 'panel-closed':
       isSidePanelReady = false
-      toggleWebRequestListener(true)
+      toggleWebRequestListener(false)
       // Create a new Promise that will resolve when the side panel is ready again
       sidePanelReadyPromise = new Promise((resolve) => {
         resolveSidePanelPromise = resolve
@@ -201,12 +199,14 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tabs) => {
     })
     console.log('The URL changed')
     clearNetworkTraffic()
-  } else if (changeInfo?.status === 'loading') {
+  } else if (changeInfo?.status === 'loading' && isSidePanelReady) {
     chrome.runtime.sendMessage({
       action: 'url-reloaded',
       url: tabs.url,
       tabId,
     })
+    // Start listening
+    toggleWebRequestListener(true)
     console.log('The URL was reloaded (page refresh)')
   }
 })

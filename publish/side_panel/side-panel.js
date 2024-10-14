@@ -12,7 +12,7 @@ import {
 } from '../background/utils.js'
 
 // Optionally, you can also add an unload event to detect when the panel is closed
-window.addEventListener('unload', function () {
+document.addEventListener('unload', function () {
   chrome.runtime.sendMessage({
     type: 'panel-closed',
     isOpen: false, // Panel is closed
@@ -188,7 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // We need to reset the display in these 3 scenarios
   // The service worker db is cleared before any of these messages is received by the side panel
-  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  chrome.runtime.onMessage.addListener((message) => {
     if (message.action === 'url-changed' || message.action === 'url-reloaded') {
       resetPanelDisplay()
       if (message.url !== url) {
