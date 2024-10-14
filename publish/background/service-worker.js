@@ -9,6 +9,45 @@ import {
 
 import { handleError, mapRequestTypeToType } from './utils.js'
 
+let isSidePanelReady = false
+let dpr
+let resolveSidePanelPromise // To hold the resolve function for the promise
+let sidePanelReadyPromise = new Promise((resolve) => {
+  resolveSidePanelPromise = resolve
+})
+
+// Only add this listener **once**
+chrome.runtime.onMessage.addListener((message) => {
+  console.log('Message')
+  switch (message.type) {
+    case 'side-panel-dom-loaded':
+      isSidePanelReady = true
+      dpr = message.dpr
+      if (resolveSidePanelPromise) {
+        resolveSidePanelPromise() // Resolve the existing promise when the side panel is ready
+      }
+      console.log('Service worker: Side panel is now ready.')
+      break
+
+    case 'reset-emissions':
+      clearNetworkTraffic()
+      break
+
+    case 'panel-closed':
+      isSidePanelReady = false
+      toggleWebRequestListener(false)
+      // Create a new Promise that will resolve when the side panel is ready again
+      sidePanelReadyPromise = new Promise((resolve) => {
+        resolveSidePanelPromise = resolve
+      })
+      console.log('Service worker: Side panel is closed.')
+      break
+
+    default:
+      console.warn('Unknown message type:', message.type)
+  }
+})
+
 const getCurrentTab = async () => {
   let queryOptions = { active: true, lastFocusedWindow: true }
   let [tab] = await chrome.tabs.query(queryOptions)
@@ -22,6 +61,8 @@ const getCurrentTab = async () => {
 
 // Open the panel when the visitor clicks on the extension icon
 chrome.action.onClicked.addListener((tab) => {
+  console.log('Extension clicked')
+  chrome.sidePanel.setOptions({ enabled: true })
   chrome.sidePanel.open({ tabId: tab.id })
   chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true })
 })
@@ -150,7 +191,7 @@ function toggleWebRequestListener(isPanelVisible) {
 }
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tabs) => {
-  if (changeInfo.url) {
+  if (changeInfo.url && isSidePanelReady) {
     chrome.runtime.sendMessage({
       action: 'url-changed',
       url: changeInfo.url,
@@ -158,45 +199,31 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tabs) => {
     })
     console.log('The URL changed')
     clearNetworkTraffic()
-  } else if (changeInfo?.status === 'loading') {
+  } else if (changeInfo?.status === 'loading' && isSidePanelReady) {
     chrome.runtime.sendMessage({
       action: 'url-reloaded',
       url: tabs.url,
       tabId,
     })
+    // Start listening
+    toggleWebRequestListener(true)
     console.log('The URL was reloaded (page refresh)')
   }
 })
 
-// Device Pixel Ratio
-let dpr
-
-// We listen to changes in the side panel:
-chrome.runtime.onMessage.addListener((message) => {
-  if (message.type === 'side-panel-dom-loaded') {
-    dpr = message.dpr
-  }
-  if (message.type === 'panel-visibility') {
-    // Enable (add), or disable (remove) the web request listener
-    toggleWebRequestListener(message.isOpen)
-  }
-  if (message.type === 'reset-emissions') {
-    clearNetworkTraffic()
-  }
-})
-
 // When the visitor moves to a different, open tab, we clear the db
-// And send a message to the side panel so that the display can be reset
+// And disable the side panel
 chrome.tabs.onActivated.addListener(async (activeInfo) => {
   console.log('Tab switched. New active tab ID:', activeInfo.tabId)
+  chrome.sidePanel.setOptions({ enabled: false })
   clearNetworkTraffic()
 
   // Fetch details of the new active tab
-  chrome.tabs.get(activeInfo.tabId, (tab) => {
+  chrome.tabs.get(activeInfo.tabId, async (tab) => {
     console.log('New active tab URL:', tab.url)
-    // Send message to side panel
-    chrome.runtime.sendMessage({
-      action: 'tab-switched',
-    })
+    if (!isSidePanelReady) {
+      console.log('Waiting for the side panel to be ready...')
+      await sidePanelReadyPromise // Wait until the side panel is ready
+    }
   })
 })
