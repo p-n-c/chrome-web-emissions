@@ -151,7 +151,6 @@ function toggleWebRequestListener(isPanelVisible) {
 }
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tabs) => {
-  console.log('chrome.tabs.onUpdated')
   if (changeInfo.url) {
     chrome.runtime.sendMessage({
       action: 'url-changed',
@@ -188,7 +187,7 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
   clearNetworkTraffic()
 
   // Fetch details of the new active tab
-  chrome.tabs.get(activeInfo.tabId, async (tab) => {
+  chrome.tabs.get(activeInfo.tabId, (tab) => {
     console.log('New active tab URL:', tab.url)
     // Send message to side panel
     chrome.runtime.sendMessage({
