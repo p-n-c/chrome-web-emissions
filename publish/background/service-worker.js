@@ -9,9 +9,13 @@ import {
 
 import { handleError, mapRequestTypeToType } from './utils.js'
 
+// Device Pixel Ratio
+let dpr
+let webRequestListener
+
 const getCurrentTab = async () => {
-  let queryOptions = { active: true, lastFocusedWindow: true }
-  let [tab] = await chrome.tabs.query(queryOptions)
+  const queryOptions = { active: true, lastFocusedWindow: true }
+  const [tab] = await chrome.tabs.query(queryOptions)
 
   if (tab && tab.active) {
     return tab
@@ -20,10 +24,13 @@ const getCurrentTab = async () => {
   }
 }
 
-// Open the panel when the visitor clicks on the extension icon
-chrome.action.onClicked.addListener((tab) => {
-  chrome.sidePanel.open({ tabId: tab.id })
-  chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true })
+chrome.runtime.onInstalled.addListener(() => {
+  // Open the panel when the visitor clicks on the extension icon
+  chrome.action.onClicked.addListener((tab) => {
+    console.log('User clicked on extension icon')
+    toggleWebRequestListener(true)
+    chrome.sidePanel.open({ tabId: tab.id })
+  })
 })
 
 // Update network traffic
@@ -126,16 +133,10 @@ const handleRequest = async (details) => {
   }
 }
 
-let webRequestListener = null
-
-function handleWebRequest(details) {
-  handleRequest(details)
-}
-
 function toggleWebRequestListener(isPanelVisible) {
   if (isPanelVisible && !webRequestListener) {
     // Enable (add) a new listener
-    webRequestListener = handleWebRequest // Assign the function reference
+    webRequestListener = handleRequest // Assign the function reference
 
     chrome.webRequest.onCompleted.addListener(webRequestListener, {
       urls: ['<all_urls>'],
@@ -150,6 +151,7 @@ function toggleWebRequestListener(isPanelVisible) {
 }
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tabs) => {
+  console.log('chrome.tabs.onUpdated')
   if (changeInfo.url) {
     chrome.runtime.sendMessage({
       action: 'url-changed',
@@ -168,17 +170,10 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tabs) => {
   }
 })
 
-// Device Pixel Ratio
-let dpr
-
 // We listen to changes in the side panel:
 chrome.runtime.onMessage.addListener((message) => {
   if (message.type === 'side-panel-dom-loaded') {
     dpr = message.dpr
-  }
-  if (message.type === 'panel-visibility') {
-    // Enable (add), or disable (remove) the web request listener
-    toggleWebRequestListener(message.isOpen)
   }
   if (message.type === 'reset-emissions') {
     clearNetworkTraffic()
@@ -189,10 +184,11 @@ chrome.runtime.onMessage.addListener((message) => {
 // And send a message to the side panel so that the display can be reset
 chrome.tabs.onActivated.addListener(async (activeInfo) => {
   console.log('Tab switched. New active tab ID:', activeInfo.tabId)
+  toggleWebRequestListener(false)
   clearNetworkTraffic()
 
   // Fetch details of the new active tab
-  chrome.tabs.get(activeInfo.tabId, (tab) => {
+  chrome.tabs.get(activeInfo.tabId, async (tab) => {
     console.log('New active tab URL:', tab.url)
     // Send message to side panel
     chrome.runtime.sendMessage({

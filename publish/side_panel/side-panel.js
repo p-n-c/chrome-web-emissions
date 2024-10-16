@@ -11,16 +11,6 @@ import {
   toggleNotification,
 } from '../background/utils.js'
 
-document.addEventListener('visibilitychange', () => {
-  // This event will fire when the side panel is opened (!hidden)
-  // This event will fire when the side panel is closed or another tab takes focus (hidden)
-  if (document.hidden) {
-    chrome.runtime.sendMessage({ type: 'panel-visibility', isOpen: false })
-  } else {
-    chrome.runtime.sendMessage({ type: 'panel-visibility', isOpen: true })
-  }
-})
-
 document.addEventListener('DOMContentLoaded', () => {
   // Capture the Device Pixel Ratio (DPR)
   const dpr = window.devicePixelRatio
