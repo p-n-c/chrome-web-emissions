@@ -25,12 +25,27 @@ const getCurrentTab = async () => {
 }
 
 chrome.runtime.onInstalled.addListener(() => {
-  // Open the panel when the visitor clicks on the extension icon
-  chrome.action.onClicked.addListener((tab) => {
-    console.log('User clicked on extension icon')
-    toggleWebRequestListener(true)
-    chrome.sidePanel.open({ tabId: tab.id })
+  console.log('Extension installed')
+})
+
+let isSidePanelOpen = false
+
+const closeSidePanel = () => {
+  isSidePanelOpen = !isSidePanelOpen
+  chrome.runtime.sendMessage({
+    action: 'close-side-panel',
   })
+  console.log('isSidePanelOpen: ', isSidePanelOpen)
+}
+
+chrome.action.onClicked.addListener((tab) => {
+  toggleWebRequestListener(!isSidePanelOpen)
+  if (!isSidePanelOpen) {
+    chrome.sidePanel.open({ windowId: tab.windowId })
+    isSidePanelOpen = !isSidePanelOpen
+  } else {
+    closeSidePanel()
+  }
 })
 
 // Update network traffic
@@ -189,9 +204,6 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
   // Fetch details of the new active tab
   chrome.tabs.get(activeInfo.tabId, (tab) => {
     console.log('New active tab URL:', tab.url)
-    // Send message to side panel
-    chrome.runtime.sendMessage({
-      action: 'tab-switched',
-    })
+    closeSidePanel()
   })
 })

@@ -182,7 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // The service worker db is cleared before any of these messages is received by the side panel
   chrome.runtime.onMessage.addListener((message) => {
     // If the visitors goes elsewhere, close the side panel
-    if (message.action === 'tab-switched') {
+    if (message.action === 'close-side-panel') {
       window.close()
     }
 
