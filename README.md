@@ -1,3 +1,3 @@
-# Page emissions
+# Chrome web emissions
 
-CO2 page emissions in mg
+Chrome extension for CO2 page emissions
