@@ -9,18 +9,18 @@
 }
 
 body {
-  padding: calc(var(--d) * 4) calc(var(--d) * 4) 0;
-  position: relative;
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 main {
-  padding-top: calc(var(--d) * 6);
-  padding-bottom: calc(var(--d) * 16);
-}
-
-aside {
-  margin-top: calc(var(--d) * -8);
-  margin-bottom: calc(var(--d) * -16);
+  position: relative;
+  flex-grow: 1;
+  overflow: auto;
+  padding: calc(var(--d) * 4);
 }
 
 h1 {
@@ -123,23 +123,20 @@ li {
 header,
 footer {
   position: fixed;
+  left: 0;
   width: 100%;
-  height: calc(var(--d) * 16);
   background-color: var(--bg-colour);
-  display: flex;
+  color: var(--fg-colour);
+  padding: calc(var(--d) * 4);
+  z-index: 1;
 }
 
 header {
   top: 0;
-  flex-direction: column;
-  justify-content: center;
 }
 
 footer {
   bottom: 0;
-  justify-content: center;
-  display: flex;
-  flex-direction: column;
   line-height: 1.8;
 }
 
