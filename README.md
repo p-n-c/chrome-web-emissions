@@ -1,7 +1,8 @@
 # Chrome Emissions Tracker
 
 Track CO2 page emissions.  
-A Chrome extension created by [People and Code](https://people-and-code.com/).
+A Chrome extension created by [People and Code](https://people-and-code.com/).  
+Available on [Chrome extensions](https://chromewebstore.google.com/detail/emissions-tracker-by-peop/oohfmmceifiepdohjhfhdpioipiagmpg).
 
 ## Features
 
