@@ -32,7 +32,7 @@ const closeSidePanel = () => {
 }
 
 chrome.action.onClicked.addListener((tab) => {
-  console.log('Visitor clicked on icon')
+  // Visitor clicks on the extension icon
   toggleWebRequestListener(!isSidePanelOpen)
   if (isSidePanelOpen) {
     closeSidePanel()
@@ -198,15 +198,13 @@ chrome.runtime.onMessage.addListener((message) => {
 })
 
 // When the visitor moves to a different tab, we clear the db and close the side panel
-chrome.tabs.onActivated.addListener(async (activeInfo) => {
-  console.log('Tab switched. New active tab ID:', activeInfo.tabId)
-  // Stop listening for requests
+chrome.tabs.onActivated.addListener(() => {
+  // We stop listening for requests
   toggleWebRequestListener(false)
   // Clear the db
   clearNetworkTraffic()
   // Close the side panel
   closeSidePanel()
-
-  // While the side panel is closed, this statement is always true
+  // And set panel closed to true
   isSidePanelOpen = false
 })

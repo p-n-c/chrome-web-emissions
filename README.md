@@ -1,3 +1,12 @@
-# Chrome web emissions
+# Chrome Emissions Tracker
 
-Chrome extension for CO2 page emissions
+Track CO2 page emissions.  
+A Chrome extension created by [People and Code](https://people-and-code.com/).
+
+## Features
+
+_Data_: Requested data in kilobytes  
+_Requests_: Number of requests and breakdown by request type  
+_Green hosted_: Whether the web site is hosted sustainably  
+_Emissions_: Emissions in gCO2  
+_Save_: Save a snapshot of page emissions for comparison against current emissions
