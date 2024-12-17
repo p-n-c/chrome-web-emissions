@@ -11,3 +11,14 @@ _Requests_: Number of requests and breakdown by request type
 _Green hosted_: Whether the web site is hosted sustainably  
 _Emissions_: Emissions in gCO2  
 _Save_: Save a snapshot of page emissions for comparison against current emissions
+
+---
+
+## How to run an extension locally
+
+1. Clone project
+2. Setup project locally `npm run install && npm run lint`
+3. Enable globally `npm link`
+4. Enable extension locally: chrome://extensions/
+
+For more details see [Build and distribute a Chrome extension](https://p-n-c.github.io/website/how-to/build-and-distribute-a-chrome-extension.html)
