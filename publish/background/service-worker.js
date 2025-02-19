@@ -9,10 +9,16 @@ import {
 
 import { handleError, mapRequestTypeToType } from './utils.js'
 
-// Device Pixel Ratio
-let dpr
-let webRequestListener
-let isSidePanelOpen = false
+const storageCache = {
+  // Device Pixel Ratio
+  dpr: undefined,
+  webRequestListener: undefined,
+  isSidePanelOpen: false,
+}
+
+const initStorageCache = chrome.storage.local.get().then((items) => {
+  Object.assign(storageCache, items)
+})
 
 const getCurrentTab = async () => {
   const queryOptions = { active: true, lastFocusedWindow: true }
@@ -31,16 +37,21 @@ const closeSidePanel = () => {
   })
 }
 
-chrome.action.onClicked.addListener((tab) => {
+chrome.action.onClicked.addListener(async (tab) => {
   // Visitor clicks on the extension icon
-  toggleWebRequestListener(!isSidePanelOpen)
-  if (isSidePanelOpen) {
+  if (storageCache.isSidePanelOpen) {
+    await initStorageCache
     closeSidePanel()
   } else {
     chrome.sidePanel.open({ windowId: tab.windowId })
+    // Can't be run outside the if statement because
+    // the sidePanel.open method has to be first in the event listener
+    await initStorageCache
   }
   // Toggle side panel visibility
-  isSidePanelOpen = !isSidePanelOpen
+  storageCache.isSidePanelOpen = !storageCache.isSidePanelOpen
+  toggleWebRequestListener(storageCache.isSidePanelOpen)
+  chrome.storage.local.set(storageCache)
 })
 
 // Update network traffic
@@ -88,7 +99,7 @@ const handleRequest = async (details) => {
         'browser',
         type,
         resourceType,
-        dpr
+        storageCache.dpr
       )
 
       if (responseDetails) {
@@ -145,24 +156,27 @@ const handleRequest = async (details) => {
 
 function toggleWebRequestListener(isPanelVisible) {
   // If the side panel is open and we don't have a web request listener
-  if (isPanelVisible && !webRequestListener) {
+  if (isPanelVisible && !storageCache.webRequestListener) {
     // Enable (add) a new listener
-    webRequestListener = handleRequest // Assign the function reference
+    storageCache.webRequestListener = handleRequest // Assign the function reference
 
-    chrome.webRequest.onCompleted.addListener(webRequestListener, {
+    chrome.webRequest.onCompleted.addListener(storageCache.webRequestListener, {
       urls: ['<all_urls>'],
     })
     console.log('Web request listener enabled (added)')
     // If the side panel is hidden and we already have a listener set up
-  } else if (!isPanelVisible && webRequestListener) {
+  } else if (!isPanelVisible && storageCache.webRequestListener) {
     // Disable (remove) the listener
-    chrome.webRequest.onCompleted.removeListener(webRequestListener)
-    webRequestListener = null // Clear the reference
+    chrome.webRequest.onCompleted.removeListener(
+      storageCache.webRequestListener
+    )
+    storageCache.webRequestListener = null // Clear the reference
     console.log('Web request listener disabled (removed)')
   }
 }
 
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tabs) => {
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tabs) => {
+  await initStorageCache
   // Let the side panel know the url has changed or page refreshed
   // So that the side panel display can be reset
   if (changeInfo.url) {
@@ -182,23 +196,27 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tabs) => {
     })
     console.log('The URL was reloaded (page refresh)')
   }
+  chrome.storage.local.set(storageCache)
 })
 
 // We listen to changes in the side panel:
-chrome.runtime.onMessage.addListener((message) => {
+chrome.runtime.onMessage.addListener(async (message) => {
+  await initStorageCache
   // The side has been loaded
   if (message.type === 'side-panel-dom-loaded') {
     // dpr is a property of window which side panel has access to
-    dpr = message.dpr
+    storageCache.dpr = message.dpr
   }
   // The visitor wants to reset
   if (message.type === 'reset-emissions') {
     clearNetworkTraffic()
   }
+  chrome.storage.local.set(storageCache)
 })
 
 // When the visitor moves to a different tab, we clear the db and close the side panel
-chrome.tabs.onActivated.addListener(() => {
+chrome.tabs.onActivated.addListener(async () => {
+  await initStorageCache
   // We stop listening for requests
   toggleWebRequestListener(false)
   // Clear the db
@@ -206,5 +224,6 @@ chrome.tabs.onActivated.addListener(() => {
   // Close the side panel
   closeSidePanel()
   // And set panel closed to true
-  isSidePanelOpen = false
+  storageCache.isSidePanelOpen = false
+  chrome.storage.local.set(storageCache)
 })
