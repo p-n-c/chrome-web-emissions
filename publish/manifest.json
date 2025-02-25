@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Emissions Tracker by People & Code",
-  "version": "0.0.0.1",
+  "version": "1.0.0",
   "description": "Track emissions from page requests in real-time.",
   "permissions": ["activeTab", "sidePanel", "tabs", "webRequest", "storage"],
   "host_permissions": ["<all_urls>"],
